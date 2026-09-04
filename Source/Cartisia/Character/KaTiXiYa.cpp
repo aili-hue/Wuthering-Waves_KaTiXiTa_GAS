@@ -95,6 +95,17 @@ void AKaTiXiYa::EndMoveInputEvent(const FInputActionValue& InputEvent)
 	}
 }
 
+void AKaTiXiYa::CtrlEvent(const FInputActionValue& InputEvent)
+{
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData  Data;
+		Data.Instigator=this;
+		Data.EventTag=Ability_WalkTag;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_WalkTag,&Data);
+	}
+}
+
 void AKaTiXiYa::InterruptAnimation()
 {
 	if (AbilitySystemComponent)
@@ -142,6 +153,10 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		if (IA_Shift_R)
 		{
 			EnhancedInputComponent->BindAction(IA_Shift_R,ETriggerEvent::Started,this,&ThisClass::SprintEvent);
+		}
+		if (IA_Ctrl)
+		{
+			EnhancedInputComponent->BindAction(IA_Ctrl,ETriggerEvent::Started,this,&ThisClass::CtrlEvent);
 		}
 	}
 }

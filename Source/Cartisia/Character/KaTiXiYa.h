@@ -58,6 +58,9 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_Shift_R;
 	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_Ctrl;
+	
 	//Init
 	UFUNCTION()
 	void InitInputMappingContext();
@@ -76,6 +79,9 @@ protected:
 	UFUNCTION()
 	void EndMoveInputEvent(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void CtrlEvent(const FInputActionValue&InputEvent);
+	
 	//GAS
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Gameplay")
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
@@ -89,6 +95,7 @@ protected:
 	//GameplayTag
 	FGameplayTag Ability_SprintTag= FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
 	FGameplayTag Ability_StopWalkingTag= FGameplayTag::RequestGameplayTag(FName("Ability.StopWalking"));
+	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
 	
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
 	
