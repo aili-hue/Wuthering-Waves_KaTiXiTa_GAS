@@ -11,6 +11,7 @@
 UGA_SpeedSwitching::UGA_SpeedSwitching()
 {
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	
 }
 
 void UGA_SpeedSwitching::PlayMontage(UAnimMontage* MontageToPlay)
@@ -40,6 +41,12 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo,ActivationInfo,true, true);
+		return;
+	}
+	
 	if (UAbilitySystemComponent*ASC= GetAbilitySystemComponentFromActorInfo())
 	{
 		if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
@@ -51,7 +58,10 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 				
 				if (ForwardSpeed > 1.f)
 				{
-					PlayMontage(FrontMontage);
+					if (FrontMontage)
+					{
+						PlayMontage(FrontMontage);
+					}
 					
 					if (Effect)
 					{
@@ -65,7 +75,10 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 				}
 				else if (ForwardSpeed <= 0.f)
 				{
-					PlayMontage(BackMontage);
+					if (BackMontage)
+					{
+						PlayMontage(BackMontage);
+					}
 				}
 			}
 		}

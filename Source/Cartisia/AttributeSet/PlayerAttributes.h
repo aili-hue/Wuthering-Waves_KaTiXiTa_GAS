@@ -27,14 +27,6 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(UPlayerAttributes,MaxHP);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	FGameplayAttributeData SpringArmLength;
-	ATTRIBUTE_ACCESSORS_BASIC(UPlayerAttributes,SpringArmLength);
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	FGameplayAttributeData MaxSpringArmLength;
-	ATTRIBUTE_ACCESSORS_BASIC(UPlayerAttributes,MaxSpringArmLength);
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FGameplayAttributeData MovementSpeed;
 	ATTRIBUTE_ACCESSORS_BASIC(UPlayerAttributes,MovementSpeed);
 	

@@ -9,6 +9,7 @@
 #include "Cartisia/AttributeSet/PlayerAttributes.h"
 #include "AbilitySystemComponent.h"
 
+
 // Sets default values
 AKaTiXiYa::AKaTiXiYa()
 {
@@ -16,6 +17,8 @@ AKaTiXiYa::AKaTiXiYa()
 	
 	SpringArmComponent=CreateDefaultSubobject<USpringArmComponent>(FName("SpringArmComponent"));
 	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->TargetArmLength= DefaultLength;
+	
 	CameraComponent=CreateDefaultSubobject<UCameraComponent>(FName("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	
@@ -30,6 +33,26 @@ void AKaTiXiYa::BeginPlay()
 	
 	InitInputMappingContext();
 	
+}
+
+void AKaTiXiYa::StartTimer()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+	GetWorldTimerManager().SetTimer(TimerHandle,this,&ThisClass::StopTimer,0.01f,true);
+}
+
+void AKaTiXiYa::StopTimer()
+{
+	DefaultLength=FMath::FInterpTo(DefaultLength,TargetLength,0.01,3.f);
+	if (SpringArmComponent)
+	{
+		SpringArmComponent->TargetArmLength= DefaultLength;
+	}
+	if (FMath::IsNearlyEqual(DefaultLength, TargetLength, 0.01f))
+	{
+		DefaultLength = TargetLength;
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+	}
 }
 
 void AKaTiXiYa::InitInputMappingContext()
@@ -106,6 +129,31 @@ void AKaTiXiYa::CtrlEvent(const FInputActionValue& InputEvent)
 	}
 }
 
+void AKaTiXiYa::MouseWheelEvent(const FInputActionValue& InputEvent)
+{
+	float Direction= InputEvent.Get<float>();
+	
+	if ((TargetLength <= 60.f && Direction < 0) || (TargetLength >= 200.f && Direction > 0))
+	{
+		return;
+	}
+	
+	TargetLength= FMath::Clamp(TargetLength+ Direction* 30.f,60.f,200.f); 
+	StartTimer();
+	
+}
+
+void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
+{
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData  Data;
+		Data.Instigator=this;
+		Data.EventTag=Ability_Jump;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_Jump,&Data);
+	}
+}
+
 void AKaTiXiYa::InterruptAnimation()
 {
 	if (AbilitySystemComponent)
@@ -158,6 +206,14 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			EnhancedInputComponent->BindAction(IA_Ctrl,ETriggerEvent::Started,this,&ThisClass::CtrlEvent);
 		}
+		if (IA_MouseWheel)
+		{
+			EnhancedInputComponent->BindAction(IA_MouseWheel,ETriggerEvent::Started,this,&ThisClass::MouseWheelEvent);
+		}
+		if (IA_Space)
+		{
+			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Started,this,&ThisClass::SpaceEvent);
+		}
 	}
 }
 
@@ -182,4 +238,18 @@ UAbilitySystemComponent* AKaTiXiYa::GetAbilitySystemComponent() const
 		return AbilitySystemComponent;
 	}
 	return nullptr;
+}
+
+void AKaTiXiYa::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Event_AbilityJumpTag;
+		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
+	}
+	
 }

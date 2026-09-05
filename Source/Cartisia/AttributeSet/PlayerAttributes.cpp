@@ -14,9 +14,6 @@ UPlayerAttributes::UPlayerAttributes()
 	InitMovementSpeed(400.f);
 	InitMaxMovementSpeed(600.f);
 	
-	InitSpringArmLength(300.f);
-	InitMaxSpringArmLength(500.f);
-	
 }
 
 void UPlayerAttributes::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
@@ -30,10 +27,6 @@ void UPlayerAttributes::PostGameplayEffectExecute(const struct FGameplayEffectMo
 	if (Data.EvaluatedData.Attribute== GetMovementSpeedAttribute())
 	{
 		SetMovementSpeed(FMath::Clamp(GetMovementSpeed(),0.f,GetMaxMovementSpeed()));
-	}
-	if (Data.EvaluatedData.Attribute== GetSpringArmLengthAttribute())
-	{
-		SetSpringArmLength(FMath::Clamp(GetSpringArmLength(),0.f,GetMaxSpringArmLength()));
 	}
 	
 }
@@ -50,11 +43,7 @@ void UPlayerAttributes::PreAttributeChange(const FGameplayAttribute& Attribute, 
 	{
 		NewValue=FMath::Clamp(NewValue,0.f,GetMaxMovementSpeed());
 	}
-	if (Attribute==GetSpringArmLengthAttribute())
-	{
-		NewValue=FMath::Clamp(NewValue,0.f,GetMaxSpringArmLength());
-	}
-	
+
 }
 
 void UPlayerAttributes::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)

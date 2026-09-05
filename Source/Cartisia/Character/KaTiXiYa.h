@@ -39,6 +39,14 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Camera")
 	TObjectPtr<UCameraComponent> CameraComponent;
 	
+	float DefaultLength= 150.f;
+	float TargetLength= 150.f;
+	
+	FTimerHandle TimerHandle;
+	
+	void StartTimer();
+	void StopTimer();
+	
 	//Input
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputMappingContext")
 	TObjectPtr<UInputMappingContext>IMC_Foundation;
@@ -61,6 +69,12 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_Ctrl;
 	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_MouseWheel;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_Space;
+	
 	//Init
 	UFUNCTION()
 	void InitInputMappingContext();
@@ -82,6 +96,12 @@ protected:
 	UFUNCTION()
 	void CtrlEvent(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void MouseWheelEvent(const FInputActionValue&InputEvent);
+	
+	UFUNCTION()
+	void SpaceEvent(const FInputActionValue&InputEvent);
+	
 	//GAS
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Gameplay")
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
@@ -96,8 +116,11 @@ protected:
 	FGameplayTag Ability_SprintTag= FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
 	FGameplayTag Ability_StopWalkingTag= FGameplayTag::RequestGameplayTag(FName("Ability.StopWalking"));
 	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
+	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
+	
+	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
 	
 	UFUNCTION()
 	void InterruptAnimation();
@@ -112,4 +135,6 @@ public:
 	virtual void PossessedBy(AController* NewController)override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	virtual void Landed(const FHitResult& Hit) override;
 };

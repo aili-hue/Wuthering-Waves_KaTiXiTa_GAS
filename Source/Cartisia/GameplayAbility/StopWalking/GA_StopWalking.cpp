@@ -42,7 +42,10 @@ void UGA_StopWalking::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		if (Character->GetCharacterMovement()->MaxWalkSpeed >= 600.f)
 		{
-			PlayMontage(Stop_Sprint);
+			if (Stop_Sprint)
+			{
+				PlayMontage(Stop_Sprint);
+			}
 			if (GameplayEffect)
 			{
 				if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
@@ -58,11 +61,17 @@ void UGA_StopWalking::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		}
 		else if (Character->GetCharacterMovement()->MaxWalkSpeed >= 400.f)
 		{
-			PlayMontage(Stop_Run);
+			if (Stop_Run)
+			{
+				PlayMontage(Stop_Run);
+			}
 		}
 		else
 		{
-			PlayMontage(Stop_Walk);
+			if (Stop_Walk)
+			{
+				PlayMontage(Stop_Walk);
+			}
 		}
 	}
 }
