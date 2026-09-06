@@ -79,6 +79,11 @@ void AKaTiXiYa::MoveInputEvent(const FInputActionValue& InputEvent)
 {
 	InterruptAnimation();
 	
+	if (!bIsMoving)
+	{
+		bIsMoving=true;
+	}
+	
 	FVector2D MousePosition2D=InputEvent.Get<FVector2D>();
 	FRotator Rotation= GetController()->GetControlRotation();
 	FRotator YawRotation(0.f,Rotation.Yaw,0.f);
@@ -97,18 +102,28 @@ void AKaTiXiYa::PerspectiveEvent(const FInputActionValue& InputEvent)
 
 void AKaTiXiYa::SprintEvent(const FInputActionValue& InputEvent)
 {
-
-	if (AbilitySystemComponent)
+	if (!bIsLanded)
 	{
-		FGameplayEventData  Data;
-		Data.Instigator=this;
-		Data.EventTag=Ability_SprintTag;
-		AbilitySystemComponent->HandleGameplayEvent(Ability_SprintTag,&Data);
+		if (AbilitySystemComponent)
+		{
+			FGameplayEventData  Data;
+			Data.Instigator=this;
+			Data.EventTag=Ability_SprintTag;
+			AbilitySystemComponent->HandleGameplayEvent(Ability_SprintTag,&Data);
+		}
 	}
 }
 
 void AKaTiXiYa::EndMoveInputEvent(const FInputActionValue& InputEvent)
 {
+	if (bIsMoving)
+	{
+		bIsMoving=false;
+	}
+	if (bIsLanded)
+	{
+		return;
+	}
 	if (AbilitySystemComponent)
 	{
 		FGameplayEventData  Data;
@@ -145,12 +160,30 @@ void AKaTiXiYa::MouseWheelEvent(const FInputActionValue& InputEvent)
 
 void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
 {
+	LandedTime= 0.f;
+	LandedTime= GetWorld()->TimeSeconds;
+	
+	bIsLanded = true;
+	
 	if (AbilitySystemComponent)
 	{
+		InterruptAnimation();
+		
 		FGameplayEventData  Data;
 		Data.Instigator=this;
 		Data.EventTag=Ability_Jump;
 		AbilitySystemComponent->HandleGameplayEvent(Ability_Jump,&Data);
+	}
+}
+
+void AKaTiXiYa::EndSpaceEvent(const FInputActionValue& InputEvent)
+{
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Event_AbilityJumpTag;
+		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
 	}
 }
 
@@ -171,7 +204,6 @@ void AKaTiXiYa::InterruptAnimation()
 void AKaTiXiYa::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -213,6 +245,7 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		if (IA_Space)
 		{
 			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Started,this,&ThisClass::SpaceEvent);
+			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Completed,this,&ThisClass::EndSpaceEvent);
 		}
 	}
 }
@@ -244,12 +277,27 @@ void AKaTiXiYa::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	
+	float Time=GetWorld()->TimeSeconds-LandedTime;
+	
 	if (AbilitySystemComponent)
 	{
-		FGameplayEventData Data;
-		Data.Instigator=this;
-		Data.EventTag=Event_AbilityJumpTag;
-		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
+		if (Time >= 1.5f)
+		{
+			FGameplayEventData Data;
+			Data.Instigator=this;
+			Data.EventTag=Ability_LandedTag;
+			
+			AbilitySystemComponent->HandleGameplayEvent(Ability_LandedTag,&Data);
+			LandedEnum=ELandedEnum::Land_Roll;
+		}
+		else if (Time<= 1.5f && Time > 1.f)
+		{
+			LandedEnum=ELandedEnum::Land_Heavy;
+		}
+		else
+		{
+			LandedEnum=ELandedEnum::Land_Light;
+		}
 	}
-	
+	bIsLanded=false;
 }

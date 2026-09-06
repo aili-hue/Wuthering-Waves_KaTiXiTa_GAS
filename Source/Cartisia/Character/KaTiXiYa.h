@@ -18,6 +18,14 @@ class UInputAction;
 class UInputMappingContext;
 class UAbilitySystemComponent;
 
+UENUM(BlueprintType)
+enum class ELandedEnum :uint8
+{
+	Land_Heavy UMETA(DisplayName="重着陆"),
+	Land_Light UMETA(DisplayName="轻着陆地"),
+	Land_Roll UMETA(DisplayName="着陆滚动")
+};
+
 UCLASS()
 class CARTISIA_API AKaTiXiYa : public ACharacter , public IAbilitySystemInterface
 {
@@ -102,6 +110,21 @@ protected:
 	UFUNCTION()
 	void SpaceEvent(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void EndSpaceEvent(const FInputActionValue&InputEvent);
+	
+	//Jump
+	uint8 bIsLanded:1 = false;
+	
+	//Landed
+	float LandedTime= 0.f;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Landed")
+	ELandedEnum LandedEnum= ELandedEnum::Land_Light;
+	
+	//Move
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Move")
+	uint8 bIsMoving:1 = false;
 	//GAS
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Gameplay")
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
@@ -117,12 +140,14 @@ protected:
 	FGameplayTag Ability_StopWalkingTag= FGameplayTag::RequestGameplayTag(FName("Ability.StopWalking"));
 	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
+	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
 	
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
 	
-	UFUNCTION()
+	//用于打断当前GA
+	UFUNCTION(BlueprintCallable,Category="Animation")
 	void InterruptAnimation();
 	
 public:	
