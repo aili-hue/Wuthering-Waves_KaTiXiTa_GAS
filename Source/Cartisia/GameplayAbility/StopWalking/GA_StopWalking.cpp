@@ -46,18 +46,6 @@ void UGA_StopWalking::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			{
 				PlayMontage(Stop_Sprint);
 			}
-			if (GameplayEffect)
-			{
-				if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
-				{
-					FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
-					FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect,1.f,ContextHandle);
-					if (SpecHandle.IsValid())
-					{
-						AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-					}
-				}
-			}
 		}
 		else if (Character->GetCharacterMovement()->MaxWalkSpeed >= 400.f)
 		{

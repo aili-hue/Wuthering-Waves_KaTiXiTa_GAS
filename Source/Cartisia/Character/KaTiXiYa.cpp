@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Cartisia/AttributeSet/PlayerAttributes.h"
 #include "AbilitySystemComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -120,16 +121,23 @@ void AKaTiXiYa::EndMoveInputEvent(const FInputActionValue& InputEvent)
 	{
 		bIsMoving=false;
 	}
-	if (bIsLanded)
-	{
-		return;
-	}
+	//因为跳跃会阻止急停动画Ability，所以我将他的修改数值和数值调整分为了两个GA
 	if (AbilitySystemComponent)
 	{
-		FGameplayEventData  Data;
-		Data.Instigator=this;
-		Data.EventTag=Ability_StopWalkingTag;
-		AbilitySystemComponent->HandleGameplayEvent(Ability_StopWalkingTag,&Data);
+		
+		if (bIsLanded && !bIsMoving || bCFalling)
+		{
+			SpeedSwitching();
+			
+			return;
+		}
+		
+		FGameplayEventData  AbilityData;
+		AbilityData.Instigator=this;
+		AbilityData.EventTag=Ability_StopWalkingTag;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_StopWalkingTag,&AbilityData);
+		
+		SpeedSwitching();
 	}
 }
 
@@ -160,9 +168,6 @@ void AKaTiXiYa::MouseWheelEvent(const FInputActionValue& InputEvent)
 
 void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
 {
-	LandedTime= 0.f;
-	LandedTime= GetWorld()->TimeSeconds;
-	
 	bIsLanded = true;
 	
 	if (AbilitySystemComponent)
@@ -185,6 +190,14 @@ void AKaTiXiYa::EndSpaceEvent(const FInputActionValue& InputEvent)
 		Data.EventTag=Event_AbilityJumpTag;
 		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
 	}
+}
+
+void AKaTiXiYa::SpeedSwitching()
+{
+	FGameplayEventData  BuffData;
+	BuffData.Instigator=this;
+	BuffData.EventTag=Ability_Buff_SpeedSwitching;
+	AbilitySystemComponent->HandleGameplayEvent(Ability_Buff_SpeedSwitching,&BuffData);
 }
 
 void AKaTiXiYa::InterruptAnimation()
@@ -281,7 +294,7 @@ void AKaTiXiYa::Landed(const FHitResult& Hit)
 	
 	if (AbilitySystemComponent)
 	{
-		if (Time >= 1.5f)
+		if (Time >= 1.1f)
 		{
 			FGameplayEventData Data;
 			Data.Instigator=this;
@@ -290,7 +303,7 @@ void AKaTiXiYa::Landed(const FHitResult& Hit)
 			AbilitySystemComponent->HandleGameplayEvent(Ability_LandedTag,&Data);
 			LandedEnum=ELandedEnum::Land_Roll;
 		}
-		else if (Time<= 1.5f && Time > 1.f)
+		else if (Time<= 1.1f && Time > 0.9f)
 		{
 			LandedEnum=ELandedEnum::Land_Heavy;
 		}
@@ -298,6 +311,20 @@ void AKaTiXiYa::Landed(const FHitResult& Hit)
 		{
 			LandedEnum=ELandedEnum::Land_Light;
 		}
+		LandedTime= 0.f;
 	}
-	bIsLanded=false;
+	bCFalling= false;
+	bIsLanded= false;
+}
+
+void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+	
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		if (!bCFalling) bCFalling = true;
+		
+		LandedTime = GetWorld()->GetTimeSeconds();
+	}
 }

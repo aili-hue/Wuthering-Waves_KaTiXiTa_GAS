@@ -119,6 +119,9 @@ protected:
 	//Landed
 	float LandedTime= 0.f;
 	
+	//Falling
+	uint8 bCFalling:1 = false;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Landed")
 	ELandedEnum LandedEnum= ELandedEnum::Land_Light;
 	
@@ -136,14 +139,23 @@ protected:
 	TArray<TSubclassOf<UGameplayAbility>> GameplayAbility;
 	
 	//GameplayTag
+	
+	//Ability
 	FGameplayTag Ability_SprintTag= FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
 	FGameplayTag Ability_StopWalkingTag= FGameplayTag::RequestGameplayTag(FName("Ability.StopWalking"));
 	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	
+	//Ability_Buff
+	FGameplayTag Ability_Buff_SpeedSwitching=FGameplayTag::RequestGameplayTag(FName("Ability.Buff.SpeedSwitching"));
+	
+	void SpeedSwitching();
+	
+	//State
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
 	
+	//Event
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
 	
 	//用于打断当前GA
@@ -162,4 +174,6 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
 	virtual void Landed(const FHitResult& Hit) override;
+	
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 };
