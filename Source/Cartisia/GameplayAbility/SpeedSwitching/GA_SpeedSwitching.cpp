@@ -5,7 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 
 UGA_SpeedSwitching::UGA_SpeedSwitching()
@@ -49,37 +48,29 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	
 	if (UAbilitySystemComponent*ASC= GetAbilitySystemComponentFromActorInfo())
 	{
-		if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+		if (TriggerEventData->EventMagnitude == 1.f)
 		{
-			if (auto* MovementComponent= Character->GetCharacterMovement())
+		
+			if (FrontMontage)
 			{
-				FVector Forward = Character->GetActorForwardVector();
-				float ForwardSpeed = FVector::DotProduct(MovementComponent->Velocity, Forward);
-				
-				if (ForwardSpeed > 1.f)
+				PlayMontage(FrontMontage);
+			}
+		
+			if (Effect)
+			{
+				FGameplayEffectContextHandle ContextHandle=ASC->MakeEffectContext();
+				FGameplayEffectSpecHandle SpecHandle=ASC->MakeOutgoingSpec(Effect,1.f,ContextHandle);
+				if (SpecHandle.IsValid())
 				{
-					if (FrontMontage)
-					{
-						PlayMontage(FrontMontage);
-					}
-					
-					if (Effect)
-					{
-						FGameplayEffectContextHandle ContextHandle=ASC->MakeEffectContext();
-						FGameplayEffectSpecHandle SpecHandle=ASC->MakeOutgoingSpec(Effect,1.f,ContextHandle);
-						if (SpecHandle.IsValid())
-						{
-							ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-						}
-					}
+					ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
-				else if (ForwardSpeed <= 0.f)
-				{
-					if (BackMontage)
-					{
-						PlayMontage(BackMontage);
-					}
-				}
+			}
+		}
+		else
+		{
+			if (BackMontage)
+			{
+				PlayMontage(BackMontage);
 			}
 		}
 	}

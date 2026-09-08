@@ -36,15 +36,21 @@ void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 			if (JumpEffect)
 			{
 				Character->Jump();
-					
+			
 				FGameplayEffectContextHandle ContextHandle=AbilitySystemComponent->MakeEffectContext();
 				FGameplayEffectSpecHandle SpecHandle=AbilitySystemComponent->MakeOutgoingSpec(JumpEffect,1.f,ContextHandle);
+			
 				if (SpecHandle.IsValid())
 				{
+				
 					EffectHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
 			}
 		}
+	}
+	else
+	{
+		EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 	}
 }
 
@@ -56,6 +62,7 @@ void UGA_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGamepl
 	{
 		if (EffectHandle.IsValid())
 		{
+		
 			AbilitySystemComponent->RemoveActiveGameplayEffect(EffectHandle);
 		}
 	}

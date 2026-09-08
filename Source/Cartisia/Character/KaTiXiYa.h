@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "KaTiXiYa.generated.h"
 
+class UGameplayEffect;
 struct FGameplayTag;
 class UPlayerAttributes;
 class UGameplayAbility;
@@ -119,8 +120,12 @@ protected:
 	//Landed
 	float LandedTime= 0.f;
 	
+	void Landed();
+	
 	//Falling
-	uint8 bCFalling:1 = false;
+	uint8 bFalling:1 = false;
+	
+	uint8 bDoubleJump:1 = false;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Landed")
 	ELandedEnum LandedEnum= ELandedEnum::Land_Light;
@@ -146,10 +151,14 @@ protected:
 	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
+	FGameplayTag Ability_DoubleJump=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
 	
-	//Ability_Buff
-	FGameplayTag Ability_Buff_SpeedSwitching=FGameplayTag::RequestGameplayTag(FName("Ability.Buff.SpeedSwitching"));
+	//InterruptAnimation
 	
+	UPROPERTY(EditAnywhere,Category="CancelSkill_AbilityTag")
+	TArray<FGameplayTag> AbilityTag;
+	
+	//Stop_GE_Buff
 	void SpeedSwitching();
 	
 	//State
@@ -160,7 +169,11 @@ protected:
 	
 	//用于打断当前GA
 	UFUNCTION(BlueprintCallable,Category="Animation")
-	void InterruptAnimation();
+	void InterruptAnimation(FGameplayTag AbilityAnimationTag);
+	
+	//GE
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GameplayEffect")
+	TSubclassOf<UGameplayEffect> SpeedSwitchGE;
 	
 public:	
 	// Called every frame
@@ -172,8 +185,6 @@ public:
 	virtual void PossessedBy(AController* NewController)override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
-	virtual void Landed(const FHitResult& Hit) override;
 	
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 };
