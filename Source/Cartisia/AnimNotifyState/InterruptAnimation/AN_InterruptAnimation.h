@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
-#include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AN_InterruptAnimation.generated.h"
 

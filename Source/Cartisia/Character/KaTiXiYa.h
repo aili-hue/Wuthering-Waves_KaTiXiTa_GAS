@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "GameplayTagContainer.h"
 #include "KaTiXiYa.generated.h"
 
@@ -50,11 +51,6 @@ protected:
 	
 	float DefaultLength= 150.f;
 	float TargetLength= 150.f;
-	
-	FTimerHandle TimerHandle;
-	
-	void StartTimer();
-	void StopTimer();
 	
 	//Input
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputMappingContext")
@@ -114,25 +110,15 @@ protected:
 	UFUNCTION()
 	void EndSpaceEvent(const FInputActionValue&InputEvent);
 	
-	//Jump
-	uint8 bIsLanded:1 = false;
-	
 	//Landed
+	
 	float LandedTime= 0.f;
 	
-	void Landed();
-	
-	//Falling
-	uint8 bFalling:1 = false;
-	
-	uint8 bDoubleJump:1 = false;
+	void LandedEvent();
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Landed")
 	ELandedEnum LandedEnum= ELandedEnum::Land_Light;
 	
-	//Move
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Move")
-	uint8 bIsMoving:1 = false;
 	//GAS
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Gameplay")
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
@@ -151,7 +137,13 @@ protected:
 	FGameplayTag Ability_WalkTag= FGameplayTag::RequestGameplayTag(FName("Ability.Walk"));
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
-	FGameplayTag Ability_DoubleJump=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
+	FGameplayTag Ability_DoubleJumpTag=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
+	
+	//Data
+	FGameplayTag Data_StopTag= FGameplayTag::RequestGameplayTag(FName("Data.Stop"));
+	FGameplayTag Data_LandedTag= FGameplayTag::RequestGameplayTag(FName("Data.Landed"));
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	FGameplayTag Data_MovingTag= FGameplayTag::RequestGameplayTag(FName("Data.Moving"));
 	
 	//InterruptAnimation
 	
@@ -171,9 +163,30 @@ protected:
 	UFUNCTION(BlueprintCallable,Category="Animation")
 	void InterruptAnimation(FGameplayTag AbilityAnimationTag);
 	
-	//GE
+	//由角色本身产生的标签Buff状态，比如:Jumping,Moving 而产生的 buff
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GameplayEffect")
-	TSubclassOf<UGameplayEffect> SpeedSwitchGE;
+	TMap<FGameplayTag,TSubclassOf<UGameplayEffect>> BuffEffect;
+	
+	//FActiveGameplayEffectHandle
+	
+	void Data_LandedEvent();
+	
+	UPROPERTY()
+	FActiveGameplayEffectHandle LandedHandle;
+	
+	UPROPERTY()
+	FActiveGameplayEffectHandle FallingHandle;
+	
+	UPROPERTY()
+	FActiveGameplayEffectHandle MovingHandle;
+	
+	// Landing Time
+	
+	UPROPERTY(EditAnywhere,Category="LandingTime")
+	float Land_RollTime= 1.5f;
+	
+	UPROPERTY(EditAnywhere,Category="LandingTime")
+	float Land_LightTime= 0.9f;
 	
 public:	
 	// Called every frame

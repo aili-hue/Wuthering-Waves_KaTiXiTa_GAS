@@ -33,27 +33,7 @@ void AKaTiXiYa::BeginPlay()
 	Super::BeginPlay();
 	
 	InitInputMappingContext();
-	
-}
-
-void AKaTiXiYa::StartTimer()
-{
-	GetWorldTimerManager().ClearTimer(TimerHandle);
-	GetWorldTimerManager().SetTimer(TimerHandle,this,&ThisClass::StopTimer,0.01f,true);
-}
-
-void AKaTiXiYa::StopTimer()
-{
-	DefaultLength=FMath::FInterpTo(DefaultLength,TargetLength,0.01,3.f);
-	if (SpringArmComponent)
-	{
-		SpringArmComponent->TargetArmLength= DefaultLength;
-	}
-	if (FMath::IsNearlyEqual(DefaultLength, TargetLength, 0.01f))
-	{
-		DefaultLength = TargetLength;
-		GetWorldTimerManager().ClearTimer(TimerHandle);
-	}
+	Data_LandedEvent();
 }
 
 void AKaTiXiYa::InitInputMappingContext()
@@ -83,9 +63,14 @@ void AKaTiXiYa::MoveInputEvent(const FInputActionValue& InputEvent)
 		InterruptAnimation(Tag);
 	}
 	
-	if (!bIsMoving)
+	if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag) && BuffEffect.Find(Data_MovingTag))
 	{
-		bIsMoving=true;
+		FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle= AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_MovingTag],1.f,ContextHandle);
+		if (SpecHandle.IsValid())
+		{
+			MovingHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
 	}
 	
 	FVector2D MousePosition2D=InputEvent.Get<FVector2D>();
@@ -108,64 +93,31 @@ void AKaTiXiYa::SprintEvent(const FInputActionValue& InputEvent)
 {
 	if (AbilitySystemComponent)
 	{
-		if (!bFalling)
-		{
-			FGameplayEventData  Data;
-			Data.Instigator=this;
+		FGameplayEventData  Data;
+		Data.Instigator=this;
 		
-			if (bIsMoving)
-			{
-				Data.EventMagnitude=1.f;
-			}
-			else
-			{
-				Data.EventMagnitude=0.f;
-			}
+		Data.EventMagnitude= AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag)? 1.f : 0.f;
 		
-			Data.EventTag=Ability_SprintTag;
-			AbilitySystemComponent->HandleGameplayEvent(Ability_SprintTag,&Data);
-		}
-		else
-		{
-			if (!bDoubleJump)
-			{
-				bDoubleJump=true;
-			}
-			else
-			{
-				return;
-			}
-			
-			FGameplayEventData  JumpData;
-			JumpData.Instigator=this;
-			
-			if (bIsMoving)
-			{
-				JumpData.EventMagnitude=1.f;
-			}
-			else
-			{
-				JumpData.EventMagnitude=0.f;
-			}
-			
-			JumpData.EventTag=Ability_DoubleJump;
-			AbilitySystemComponent->HandleGameplayEvent(Ability_DoubleJump,&JumpData);
-		}
-		
+		Data.EventTag=Ability_SprintTag;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_SprintTag,&Data);
 	}
-	
 }
 
 void AKaTiXiYa::EndMoveInputEvent(const FInputActionValue& InputEvent)
 {
-	if (bIsMoving)
+	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag))
 	{
-		bIsMoving=false;
+		if (MovingHandle.IsValid())
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffect(MovingHandle);
+			MovingHandle.Invalidate();
+		}
 	}
 	//因为跳跃会阻止急停动画Ability，所以我将他的修改数值和数值调整分为了两个GA
+	
 	if (AbilitySystemComponent)
 	{
-		if (!bFalling)
+		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
 		{
 			FGameplayEventData  AbilityData;
 			AbilityData.Instigator=this;
@@ -192,19 +144,17 @@ void AKaTiXiYa::MouseWheelEvent(const FInputActionValue& InputEvent)
 {
 	float Direction= InputEvent.Get<float>();
 	
-	if ((TargetLength <= 60.f && Direction < 0) || (TargetLength >= 200.f && Direction > 0))
+	if ((TargetLength <= 60.f && Direction < 0) || (TargetLength >= 300.f && Direction > 0))
 	{
 		return;
 	}
 	
-	TargetLength= FMath::Clamp(TargetLength+ Direction* 30.f,60.f,200.f); 
-	StartTimer();
+	TargetLength= FMath::Clamp(TargetLength+ Direction* 30.f,60.f,300.f); 
 	
 }
 
 void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
 {
-	bIsLanded = true;
 	
 	if (AbilitySystemComponent)
 	{
@@ -231,13 +181,13 @@ void AKaTiXiYa::EndSpaceEvent(const FInputActionValue& InputEvent)
 	}
 }
 
-void AKaTiXiYa::Landed()
+void AKaTiXiYa::LandedEvent()
 {
 	float Time=GetWorld()->TimeSeconds-LandedTime;
 	
 	if (AbilitySystemComponent)
 	{
-		if (Time >= 2.f)
+		if (Time >= Land_RollTime)
 		{
 			FGameplayEventData Data;
 			Data.Instigator=this;
@@ -246,7 +196,7 @@ void AKaTiXiYa::Landed()
 			AbilitySystemComponent->HandleGameplayEvent(Ability_LandedTag,&Data);
 			LandedEnum=ELandedEnum::Land_Roll;
 		}
-		else if (Time<= 2.f && Time > 1.f)
+		else if (Time<= Land_RollTime && Time > Land_LightTime)
 		{
 			LandedEnum=ELandedEnum::Land_Heavy;
 		}
@@ -254,17 +204,26 @@ void AKaTiXiYa::Landed()
 		{
 			LandedEnum=ELandedEnum::Land_Light;
 		}
+		
 		LandedTime= 0.f;
 	}
-	bFalling= false;
-	bIsLanded= false;
+	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
+	{
+		if (FallingHandle.IsValid())
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffect(FallingHandle);
+			FallingHandle.Invalidate();
+		}
+	}
+	
 }
 
 void AKaTiXiYa::SpeedSwitching()
 {
-	if (!AbilitySystemComponent || !SpeedSwitchGE) return;
+	if (!AbilitySystemComponent || !BuffEffect.Find(Data_StopTag)) return;
+	
 	FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(SpeedSwitchGE, 1.f, Context);
+	FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_StopTag], 1.f, Context);
 	if (Spec.IsValid())
 	{
 		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
@@ -284,10 +243,37 @@ void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 	}
 }
 
+void AKaTiXiYa::Data_LandedEvent()
+{
+	if (BuffEffect.Find(Data_LandedTag))
+	{
+		if (Data_LandedTag.IsValid())
+		{
+			FGameplayEffectContextHandle Context=AbilitySystemComponent->MakeEffectContext();
+			FGameplayEffectSpecHandle EffectSpec=AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_LandedTag],1.f,Context);
+			if (EffectSpec.IsValid())
+			{
+				LandedHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpec.Data.Get());
+			}
+		}
+	}
+}
+
 // Called every frame
 void AKaTiXiYa::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (!FMath::IsNearlyEqual(SpringArmComponent->TargetArmLength, TargetLength, 0.1f))
+	{
+		SpringArmComponent->TargetArmLength = FMath::FInterpTo(
+			SpringArmComponent->TargetArmLength, 
+			TargetLength, 
+			DeltaTime, 
+			5.f 
+		);
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -361,26 +347,43 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 	
+	if (!AbilitySystemComponent)return;
+	
 	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
-		if (!bFalling) bFalling = true;
+		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
+		{
+			if (BuffEffect.Find(Data_FallingTag))
+			{
+				FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+				FGameplayEffectSpecHandle SpecHandle= AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_FallingTag],1.f,ContextHandle);
+				if (SpecHandle.IsValid())
+				{
+					FallingHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+			}
+		}
+		
 		LandedTime = GetWorld()->GetTimeSeconds();
+		
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_LandedTag))
+		{
+			if (LandedHandle.IsValid())
+			{
+				AbilitySystemComponent->RemoveActiveGameplayEffect(LandedHandle);
+				LandedHandle.Invalidate();
+			}
+		}
+		
 	}
 	
-	if (PreviousMovementMode == MOVE_Flying&&(GetCharacterMovement()->MovementMode == MOVE_Walking||GetCharacterMovement()->MovementMode == MOVE_NavWalking))
+	if (PreviousMovementMode== MOVE_Falling && (GetCharacterMovement()->MovementMode == MOVE_Walking|| GetCharacterMovement()->MovementMode == MOVE_NavWalking))
 	{
-		InterruptAnimation(Ability_DoubleJump);
-		Landed();
-		return;
-	}
-	
-	if (PreviousMovementMode == MOVE_Falling &&(GetCharacterMovement()->MovementMode == MOVE_Walking ||
-		 GetCharacterMovement()->MovementMode == MOVE_NavWalking))
-	{
-		InterruptAnimation(Ability_DoubleJump);
-		if (bDoubleJump)bDoubleJump=false;
-		UE_LOG(LogTemp,Error,TEXT("测试"));
-		Landed();
+		
+		InterruptAnimation(Ability_DoubleJumpTag);
+		LandedEvent();
+		
+		Data_LandedEvent();
 	}
 	
 }

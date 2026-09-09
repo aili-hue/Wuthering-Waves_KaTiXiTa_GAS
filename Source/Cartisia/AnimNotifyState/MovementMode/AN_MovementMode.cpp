@@ -14,7 +14,7 @@ void UAN_MovementMode::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 	{
 		if (UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
 		{
-			MoveComp->SetMovementMode(MOVE_Flying);
+			MoveComp->SetMovementMode(StartMovementMode);
 		}
 	}
 }
@@ -26,7 +26,7 @@ void UAN_MovementMode::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 	{
 		if (UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
 		{
-			MoveComp->SetMovementMode(MOVE_Walking);
+			MoveComp->SetMovementMode(EndMovementMode);
 		}
 	}
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
