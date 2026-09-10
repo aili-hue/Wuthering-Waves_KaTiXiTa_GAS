@@ -35,6 +35,7 @@ void UGA_Walk::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 			}
 		}
 	}
+	
 }
 
 void UGA_Walk::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

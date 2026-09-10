@@ -181,6 +181,64 @@ void AKaTiXiYa::EndSpaceEvent(const FInputActionValue& InputEvent)
 	}
 }
 
+void AKaTiXiYa::AttackInputStarted(const FInputActionValue& InputEvent)
+{
+	AttackStartTime= GetWorld()->GetTimeSeconds();
+}
+
+void AKaTiXiYa::AttackInputHold(const FInputActionValue& InputEvent)
+{
+	if (bHeavyAttackAutoTriggered)return;
+	
+	float CurrentHoldTime = GetWorld()->GetTimeSeconds() - AttackStartTime;
+	
+	if (CurrentHoldTime >= HeavyAttackThreshold)
+	{
+		if (AbilitySystemComponent)
+		{
+			bHeavyAttackAutoTriggered=true;
+	
+			FGameplayEventData Data;
+			Data.Instigator=this;
+			Data.EventTag=Ability_Fight_HeavyBlow;
+			AbilitySystemComponent->HandleGameplayEvent(Ability_Fight_HeavyBlow,&Data);
+		}
+	}
+	
+}
+
+void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
+{
+	
+	if (AbilitySystemComponent && !bHeavyAttackAutoTriggered)
+	{
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_AttackTag))
+		{
+			if (AbilitySystemComponent->HasMatchingGameplayTag(State_ContinuousInterruption))
+			{
+				FGameplayEventData EventData;
+				EventData.Instigator=this;
+				EventData.EventTag=Event_Attack;
+				AbilitySystemComponent->HandleGameplayEvent(Event_Attack,&EventData);
+				return;
+			}
+			if (AbilitySystemComponent->HasMatchingGameplayTag(Data_StopGATag))
+			{
+				FGameplayTagContainer Container;
+				Container.AddTag(Ability_Fight_NormalAttack);
+				AbilitySystemComponent->CancelAbilities(&Container);
+			}
+		}
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Ability_Fight_NormalAttack;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_Fight_NormalAttack,&Data);
+	}
+	
+	AttackStartTime= 0;
+	bHeavyAttackAutoTriggered=false;
+}
+
 void AKaTiXiYa::LandedEvent()
 {
 	float Time=GetWorld()->TimeSeconds-LandedTime;
@@ -292,9 +350,9 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			EnhancedInputComponent->BindAction(IA_Perspective,ETriggerEvent::Triggered,this,&ThisClass::PerspectiveEvent);
 		}
-		if (IA_RightMouseButton)
+		if (IA_Right_MouseButton)
 		{
-			EnhancedInputComponent->BindAction(IA_RightMouseButton,ETriggerEvent::Started,this,&ThisClass::SprintEvent);
+			EnhancedInputComponent->BindAction(IA_Right_MouseButton,ETriggerEvent::Started,this,&ThisClass::SprintEvent);
 		}
 		if (IA_Shift_L)
 		{
@@ -308,14 +366,20 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			EnhancedInputComponent->BindAction(IA_Ctrl,ETriggerEvent::Started,this,&ThisClass::CtrlEvent);
 		}
-		if (IA_MouseWheel)
+		if (IA_Mouse_Wheel)
 		{
-			EnhancedInputComponent->BindAction(IA_MouseWheel,ETriggerEvent::Started,this,&ThisClass::MouseWheelEvent);
+			EnhancedInputComponent->BindAction(IA_Mouse_Wheel,ETriggerEvent::Started,this,&ThisClass::MouseWheelEvent);
 		}
 		if (IA_Space)
 		{
 			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Started,this,&ThisClass::SpaceEvent);
 			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Completed,this,&ThisClass::EndSpaceEvent);
+		}
+		if (IA_Left_MouseButton)
+		{
+			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Started,this,&ThisClass::AttackInputStarted);
+			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Triggered,this,&ThisClass::AttackInputHold);
+			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Completed,this,&ThisClass::AttackInputReleased);
 		}
 	}
 }

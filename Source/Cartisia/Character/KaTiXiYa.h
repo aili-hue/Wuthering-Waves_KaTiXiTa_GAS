@@ -63,7 +63,7 @@ protected:
 	TObjectPtr<UInputAction> IA_Perspective;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
-	TObjectPtr<UInputAction> IA_RightMouseButton;
+	TObjectPtr<UInputAction> IA_Right_MouseButton;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_Shift_L;
@@ -75,10 +75,13 @@ protected:
 	TObjectPtr<UInputAction> IA_Ctrl;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
-	TObjectPtr<UInputAction> IA_MouseWheel;
+	TObjectPtr<UInputAction> IA_Mouse_Wheel;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_Space;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_Left_MouseButton;
 	
 	//Init
 	UFUNCTION()
@@ -110,6 +113,15 @@ protected:
 	UFUNCTION()
 	void EndSpaceEvent(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void AttackInputStarted(const FInputActionValue&InputEvent);
+	
+	UFUNCTION()
+	void AttackInputHold(const FInputActionValue&InputEvent);
+	
+	UFUNCTION()
+	void AttackInputReleased(const FInputActionValue&InputEvent);
+	
 	//Landed
 	
 	float LandedTime= 0.f;
@@ -138,12 +150,16 @@ protected:
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	FGameplayTag Ability_DoubleJumpTag=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
+	FGameplayTag Ability_Fight_NormalAttack= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.NormalAttack"));
+	FGameplayTag Ability_Fight_HeavyBlow= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.HeavyBlow"));
 	
 	//Data
 	FGameplayTag Data_StopTag= FGameplayTag::RequestGameplayTag(FName("Data.Stop"));
 	FGameplayTag Data_LandedTag= FGameplayTag::RequestGameplayTag(FName("Data.Landed"));
 	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
 	FGameplayTag Data_MovingTag= FGameplayTag::RequestGameplayTag(FName("Data.Moving"));
+	FGameplayTag Data_AttackTag= FGameplayTag::RequestGameplayTag(FName("Data.Attack"));
+	FGameplayTag Data_StopGATag= FGameplayTag::RequestGameplayTag(FName("Data.StopGA"));
 	
 	//InterruptAnimation
 	
@@ -154,10 +170,15 @@ protected:
 	void SpeedSwitching();
 	
 	//State
+	
+	//常规移动打断
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
+	//连招打断
+	FGameplayTag State_ContinuousInterruption=FGameplayTag::RequestGameplayTag(FName("State.ContinuousInterruption"));
 	
 	//Event
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
+	FGameplayTag Event_Attack= FGameplayTag::RequestGameplayTag(FName("Event.Attack"));
 	
 	//用于打断当前GA
 	UFUNCTION(BlueprintCallable,Category="Animation")
@@ -187,6 +208,16 @@ protected:
 	
 	UPROPERTY(EditAnywhere,Category="LandingTime")
 	float Land_LightTime= 0.9f;
+	
+	//AttackTime
+	float AttackStartTime = 0.f;
+	
+	//重击蓄力所需时间
+	UPROPERTY(EditAnywhere,Category="Combat")
+	float HeavyAttackThreshold = 0.3f;
+	
+	//是否重击
+	uint8 bHeavyAttackAutoTriggered :1= false;
 	
 public:	
 	// Called every frame
