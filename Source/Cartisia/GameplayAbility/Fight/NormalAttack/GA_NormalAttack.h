@@ -37,7 +37,7 @@ protected:
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	
 	UFUNCTION()
-	void PlayMontage(FFightStruct FightStruct);
+	void PlayMontage(const FFightStruct& FightStruct);
 	
 	UFUNCTION()
 	void EndMontage();

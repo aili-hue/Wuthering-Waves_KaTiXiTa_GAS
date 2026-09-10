@@ -12,7 +12,7 @@ UGA_NormalAttack::UGA_NormalAttack()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
-void UGA_NormalAttack::PlayMontage(FFightStruct FightStruct)
+void UGA_NormalAttack::PlayMontage(const FFightStruct& FightStruct)
 {
 	if (FightStruct.Montage)
 	{
@@ -63,6 +63,12 @@ void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			WaitGameplayEvent->ReadyForActivation();
 		}
 		
+		if (FightStructs.Num() == 0) 
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
+		
 		if (CurrentMove== 0 && FightStructs[CurrentMove].Montage)
 		{
 			PlayMontage(FightStructs[CurrentMove]);
@@ -84,9 +90,8 @@ void UGA_NormalAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	
-	UE_LOG(LogTemp,Error,TEXT("测试"));
-	
 	CurrentMove= 0;
+	bIsCombo = false;
 	
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 	{
