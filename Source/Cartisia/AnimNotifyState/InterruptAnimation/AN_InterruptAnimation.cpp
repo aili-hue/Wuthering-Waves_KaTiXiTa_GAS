@@ -38,7 +38,6 @@ void UAN_InterruptAnimation::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 			AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveGameplayEffectHandle);
 		}
 	}
-	
 	ActiveGameplayEffectHandle= FActiveGameplayEffectHandle();
 	
 	Super::NotifyEnd(MeshComp, Animation, EventReference);

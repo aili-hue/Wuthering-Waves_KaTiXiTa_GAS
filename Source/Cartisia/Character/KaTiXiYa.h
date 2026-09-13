@@ -41,6 +41,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
+	//Mesh
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
+	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
+	TObjectPtr<USkeletalMeshComponent> DollMesh;
+	
 	//lens
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SpringArm")
@@ -150,6 +157,8 @@ protected:
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	FGameplayTag Ability_DoubleJumpTag=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
+	
+	//Ability_Fight
 	FGameplayTag Ability_Fight_NormalAttack= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.NormalAttack"));
 	FGameplayTag Ability_Fight_HeavyBlow= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.HeavyBlow"));
 	
@@ -175,6 +184,13 @@ protected:
 	FGameplayTag State_InterruptibleTag= FGameplayTag::RequestGameplayTag(FName("State.Interruptible"));
 	//连招打断
 	FGameplayTag State_ContinuousInterruption=FGameplayTag::RequestGameplayTag(FName("State.ContinuousInterruption"));
+	//切换模型
+	FGameplayTag State_Visual_Doll=FGameplayTag::RequestGameplayTag(FName("State.Visual.Doll"));
+	
+	UFUNCTION()
+	void DollEvent(FGameplayTag EventTag,int32 Number);
+	
+	FDelegateHandle DollHandle;
 	
 	//Event
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
@@ -224,11 +240,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void PossessedBy(AController* NewController)override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 };

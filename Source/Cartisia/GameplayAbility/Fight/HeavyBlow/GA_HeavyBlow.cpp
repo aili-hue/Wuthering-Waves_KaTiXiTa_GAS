@@ -34,7 +34,6 @@ void UGA_HeavyBlow::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
 	PlayMontage(Montage);
-	UE_LOG(LogTemp,Error,TEXT("测试"));
 }
 
 void UGA_HeavyBlow::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
