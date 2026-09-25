@@ -9,7 +9,7 @@
 #include "Cartisia/AttributeSet/PlayerAttributes.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Cartisia/Actor/Arms/Actor_Arms.h"
 
 // Sets default values
 AKaTiXiYa::AKaTiXiYa()
@@ -26,10 +26,6 @@ AKaTiXiYa::AKaTiXiYa()
 	AbilitySystemComponent=CreateDefaultSubobject<UAbilitySystemComponent>(FName("AbilitySystemComponent"));
 	PlayerAttributes=CreateDefaultSubobject<UPlayerAttributes>(TEXT("PlayerAttributes"));
 	
-	WeaponMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	WeaponMesh->SetupAttachment(GetMesh(),TEXT("Bip001RHand插槽"));
-	
-	
 	DollMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DollMesh"));
 	DollMesh->SetupAttachment(GetMesh(),TEXT("Bip001RHandDoll"));
 }
@@ -41,6 +37,7 @@ void AKaTiXiYa::BeginPlay()
 	
 	InitInputMappingContext();
 	Data_LandedEvent();
+	SpawnAttachmentActor();
 	
 	if(DollMesh)
 	{
@@ -51,6 +48,21 @@ void AKaTiXiYa::BeginPlay()
 	{
 		DollHandle=AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).AddUObject(this,&ThisClass::DollEvent);
 	}
+}
+
+void AKaTiXiYa::SpawnAttachmentActor()
+{
+	if (!WeaponMesh || AttachmentActor)return;
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = this;
+	SpawnInfo.Instigator =this;
+	SpawnInfo.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AttachmentActor = GetWorld()->SpawnActor<AActor>(WeaponMesh,SpawnInfo);
+	if (AttachmentActor)
+	{
+		AttachmentActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,WeaponSocket);
+	}
+	AttachmentActor->SetActorRelativeScale3D(FVector(0.008f));
 }
 
 void AKaTiXiYa::InitInputMappingContext()
@@ -161,12 +173,12 @@ void AKaTiXiYa::MouseWheelEvent(const FInputActionValue& InputEvent)
 {
 	float Direction= InputEvent.Get<float>();
 	
-	if ((TargetLength <= 60.f && Direction < 0) || (TargetLength >= 300.f && Direction > 0))
+	if ((TargetLength <= 60.f && Direction < 0) || (TargetLength >= MaxTargetLength && Direction > 0))
 	{
 		return;
 	}
 	
-	TargetLength= FMath::Clamp(TargetLength+ Direction* 30.f,60.f,300.f); 
+	TargetLength= FMath::Clamp(TargetLength+ Direction* 30.f,60.f,MaxTargetLength); 
 	
 }
 
@@ -307,18 +319,12 @@ void AKaTiXiYa::SpeedSwitching()
 
 void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
 {
-	if (WeaponMesh && Number>0.f)
+	if (!WeaponMesh)return;
+	if (AActor_Arms* Arms= Cast<AActor_Arms>(AttachmentActor))
 	{
-		WeaponMesh->SetVisibility(false);
-		DollMesh->SetVisibility(true);
+		Arms->SkeletalMeshComponent->SetVisibility(Number>0 ? false : true);
 	}
-	else
-	{
-		/*UE_LOG(LogTemp,Error,TEXT("测试"));*/
-		
-		DollMesh->SetVisibility(false);
-		WeaponMesh->SetVisibility(true);
-	}
+	DollMesh->SetVisibility(Number>0);
 }
 
 void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
@@ -476,13 +482,11 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 	
 	if (PreviousMovementMode== MOVE_Falling && (GetCharacterMovement()->MovementMode == MOVE_Walking|| GetCharacterMovement()->MovementMode == MOVE_NavWalking))
 	{
-		
 		InterruptAnimation(Ability_DoubleJumpTag);
 		LandedEvent();
 		
 		Data_LandedEvent();
 	}
-	
 }
 
 void AKaTiXiYa::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -490,6 +494,11 @@ void AKaTiXiYa::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).Remove(DollHandle);
+	}
+	if (AttachmentActor)
+	{
+		AttachmentActor->Destroy();
+		AttachmentActor = nullptr;
 	}
 	Super::EndPlay(EndPlayReason);
 }

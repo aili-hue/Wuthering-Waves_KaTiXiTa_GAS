@@ -3,22 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "AN_ReplaceTheModel.generated.h"
+#include "AN_ChangeofDirection.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CARTISIA_API UAN_ReplaceTheModel : public UAnimNotifyState
+class CARTISIA_API UAN_ChangeofDirection : public UAnimNotifyState
 {
 	GENERATED_BODY()
-	
 public:
-	
-	FGameplayTag State_Visual_Doll= FGameplayTag::RequestGameplayTag(FName("State.Visual.Doll"));
-	
 	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)override;
 	virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, const FAnimNotifyEventReference& EventReference)override;
 };

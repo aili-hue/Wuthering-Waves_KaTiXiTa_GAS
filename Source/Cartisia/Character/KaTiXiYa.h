@@ -42,8 +42,17 @@ protected:
 	virtual void BeginPlay() override;
 	
 	//Mesh
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
-	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor>WeaponMesh;
+	
+	UPROPERTY()
+	TObjectPtr<AActor>AttachmentActor;
+	
+	UPROPERTY(EditAnywhere,Category="MeshName")
+	FName WeaponSocket;
+	
+	void SpawnAttachmentActor();
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
 	TObjectPtr<USkeletalMeshComponent> DollMesh;
@@ -56,8 +65,14 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Camera")
 	TObjectPtr<UCameraComponent> CameraComponent;
 	
+	UPROPERTY(EditAnywhere,Category="SpringArm")
 	float DefaultLength= 150.f;
+	
+	UPROPERTY(EditAnywhere,Category="SpringArm")
 	float TargetLength= 150.f;
+	
+	UPROPERTY(EditAnywhere,Category="SpringArm")
+	float MaxTargetLength= 500.f;
 	
 	//Input
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputMappingContext")
@@ -220,10 +235,10 @@ protected:
 	// Landing Time
 	
 	UPROPERTY(EditAnywhere,Category="LandingTime")
-	float Land_RollTime= 1.5f;
+	float Land_RollTime= 1.3f;
 	
 	UPROPERTY(EditAnywhere,Category="LandingTime")
-	float Land_LightTime= 0.9f;
+	float Land_LightTime= 1.f;
 	
 	//AttackTime
 	float AttackStartTime = 0.f;

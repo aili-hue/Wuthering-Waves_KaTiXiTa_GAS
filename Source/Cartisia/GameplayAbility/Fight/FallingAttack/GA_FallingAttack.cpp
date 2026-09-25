@@ -13,7 +13,8 @@ UGA_FallingAttack::UGA_FallingAttack()
 
 void UGA_FallingAttack::PlayMontage(UAnimMontage* Montage)
 {
-	if (UAbilityTask_PlayMontageAndWait* MontageAndWait =UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None,Montage,1.f,MontageName))
+	if (UAbilityTask_PlayMontageAndWait* MontageAndWait =UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,
+		NAME_None,Montage,1.f,MontageName))
 	{
 		MontageAndWait->OnCompleted.AddDynamic(this,&ThisClass::LoopMontage_Name);
 		MontageAndWait->OnInterrupted.AddDynamic(this,&ThisClass::EndMontage);

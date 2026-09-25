@@ -34,6 +34,9 @@ protected:
 	UPROPERTY(EditAnywhere,Category="GameplayEffect")
 	TSubclassOf<UGameplayEffect> GameplayEffect;
 	
+	//特效Tag
+	FGameplayTag GC_AttackEffect=FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Matrix"));
+	
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	
 	UFUNCTION()

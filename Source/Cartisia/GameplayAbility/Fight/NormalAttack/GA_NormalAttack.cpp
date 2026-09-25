@@ -42,11 +42,21 @@ void UGA_NormalAttack::Interrupted()
 
 void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 {
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+	{
+		CurrentMove= (CurrentMove+1) % FightStructs.Num();
+		if (!bIsCombo)bIsCombo=true;
+		PlayMontage(FightStructs[CurrentMove]);
 	
-	CurrentMove= (CurrentMove+1) % FightStructs.Num();
-	if (!bIsCombo)bIsCombo=true;
-	
-	PlayMontage(FightStructs[CurrentMove]);
+		if (CurrentMove == 2 )
+		{
+			FGameplayCueParameters Params;
+			Params.EffectCauser = GetAvatarActorFromActorInfo(); 
+			Params.Instigator = GetAvatarActorFromActorInfo();
+ 
+			AbilitySystemComponent->ExecuteGameplayCue(GC_AttackEffect,Params);
+		}
+	}
 }
 
 void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
