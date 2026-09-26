@@ -19,6 +19,17 @@ void AGC_AttackEffect::OnMatrixAnimEnded(UAnimMontage* Montage, bool bInterrupte
 
 bool AGC_AttackEffect::OnExecute_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters)
 {
+	if (SkeletalMeshComponent)
+	{
+		if (UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance())
+		{
+			AnimInst->OnMontageEnded.RemoveAll(this);
+			AnimInst->StopAllMontages(0.f);
+		}
+	}
+	
+	bool bSuperResult = Super::OnExecute_Implementation(MyTarget, Parameters);
+	
 	FVector FinalLocation = Parameters.Location.IsNearlyZero() ? 
 							(Parameters.EffectCauser.IsValid() ? Parameters.EffectCauser->GetActorLocation() : FVector::ZeroVector) : 
 							Parameters.Location;
@@ -30,13 +41,18 @@ bool AGC_AttackEffect::OnExecute_Implementation(AActor* MyTarget, const FGamepla
 	{
 		if (UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance())
 		{
+			AnimInst->Montage_Stop(0.1f);
+			
+			if (!AnimInst->OnMontageEnded.IsAlreadyBound(this, &ThisClass::OnMatrixAnimEnded))
+			{
+				AnimInst->OnMontageEnded.AddDynamic(this, &ThisClass::OnMatrixAnimEnded);
+			}
 			AnimInst->Montage_Play(MyMatrixAnim);
-			AnimInst->OnMontageEnded.AddDynamic(this, &ThisClass::OnMatrixAnimEnded);
 		}
 		else
 		{
 			Destroy(); 
 		}
 	}
-	return true;
+	return bSuperResult;
 }

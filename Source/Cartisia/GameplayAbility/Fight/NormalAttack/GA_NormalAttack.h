@@ -36,6 +36,7 @@ protected:
 	
 	//特效Tag
 	FGameplayTag GC_AttackEffect=FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Matrix"));
+	FGameplayTag GC_Attack_Gravity=FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Gravity"));
 	
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	

@@ -44,18 +44,30 @@ void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 {
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 	{
-		CurrentMove= (CurrentMove+1) % FightStructs.Num();
-		if (!bIsCombo)bIsCombo=true;
-		PlayMontage(FightStructs[CurrentMove]);
-	
-		if (CurrentMove == 2 )
-		{
-			FGameplayCueParameters Params;
-			Params.EffectCauser = GetAvatarActorFromActorInfo(); 
-			Params.Instigator = GetAvatarActorFromActorInfo();
+		const int32 TargetMoveIndex = (CurrentMove + 1) % FightStructs.Num();
+		
+		CurrentMove = TargetMoveIndex;
+		bIsCombo = true;
+		
+		FGameplayCueParameters Params;
+		Params.EffectCauser = GetAvatarActorFromActorInfo();
+		Params.Instigator = GetAvatarActorFromActorInfo();
+		Params.Location = GetAvatarActorFromActorInfo()->GetActorLocation();
+		Params.RawMagnitude = FightStructs[TargetMoveIndex].Magnification;
  
-			AbilitySystemComponent->ExecuteGameplayCue(GC_AttackEffect,Params);
+		switch (TargetMoveIndex)
+		{
+		case 2:
+			AbilitySystemComponent->ExecuteGameplayCue(GC_AttackEffect, Params);
+			break;
+		case 3:
+			AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_Gravity, Params);
+			break;
+		default:
+			break;
 		}
+		
+		PlayMontage(FightStructs[CurrentMove]);
 	}
 }
 
