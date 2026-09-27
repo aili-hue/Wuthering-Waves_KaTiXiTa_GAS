@@ -42,7 +42,6 @@ void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 			
 				if (SpecHandle.IsValid())
 				{
-				
 					EffectHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
 			}

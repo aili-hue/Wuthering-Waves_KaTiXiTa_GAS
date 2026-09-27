@@ -46,9 +46,20 @@ void AKaTiXiYa::BeginPlay()
 	
 	if (AbilitySystemComponent)
 	{
-		DollHandle=AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).AddUObject(this,&ThisClass::DollEvent);
+		DollHandle= AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).AddUObject(this,&ThisClass::DollEvent);
 	}
 }
+
+void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
+{
+	if (!WeaponMesh)return;
+	if (AActor_Arms* Arms= Cast<AActor_Arms>(AttachmentActor))
+	{
+		Arms->SkeletalMeshComponent->SetVisibility(Number>0 ? false : true);
+	}
+	DollMesh->SetVisibility(Number>0);
+}
+
 
 void AKaTiXiYa::SpawnAttachmentActor()
 {
@@ -268,6 +279,17 @@ void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
 	bHeavyAttackAutoTriggered=false;
 }
 
+void AKaTiXiYa::E_Event(const FInputActionValue& InputEvent)
+{
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Ability_SkillTag;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_SkillTag,&Data);
+	}
+}
+
 void AKaTiXiYa::LandedEvent()
 {
 	float Time=GetWorld()->TimeSeconds-LandedTime;
@@ -317,15 +339,6 @@ void AKaTiXiYa::SpeedSwitching()
 	}
 }
 
-void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
-{
-	if (!WeaponMesh)return;
-	if (AActor_Arms* Arms= Cast<AActor_Arms>(AttachmentActor))
-	{
-		Arms->SkeletalMeshComponent->SetVisibility(Number>0 ? false : true);
-	}
-	DollMesh->SetVisibility(Number>0);
-}
 
 void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 {
@@ -419,6 +432,10 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Started,this,&ThisClass::AttackInputStarted);
 			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Triggered,this,&ThisClass::AttackInputHold);
 			EnhancedInputComponent->BindAction(IA_Left_MouseButton,ETriggerEvent::Completed,this,&ThisClass::AttackInputReleased);
+		}
+		if (IA_E)
+		{
+			EnhancedInputComponent->BindAction(IA_E,ETriggerEvent::Started,this,&ThisClass::E_Event);
 		}
 	}
 }

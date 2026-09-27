@@ -82,6 +82,7 @@ void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		if (UAbilityTask_WaitGameplayEvent* WaitGameplayEvent=UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,Event_Attack))
 		{
 			WaitGameplayEvent->EventReceived.AddDynamic(this,&ThisClass::WaitGameplayEvent);
+			
 			WaitGameplayEvent->ReadyForActivation();
 		}
 		

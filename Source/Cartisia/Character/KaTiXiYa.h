@@ -105,6 +105,9 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_Left_MouseButton;
 	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_E;
+	
 	//Init
 	UFUNCTION()
 	void InitInputMappingContext();
@@ -144,6 +147,9 @@ protected:
 	UFUNCTION()
 	void AttackInputReleased(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void E_Event(const FInputActionValue&InputEvent);
+	
 	//Landed
 	
 	float LandedTime= 0.f;
@@ -172,6 +178,7 @@ protected:
 	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	FGameplayTag Ability_DoubleJumpTag=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
+	FGameplayTag Ability_SkillTag= FGameplayTag::RequestGameplayTag(FName("Ability.Skill"));
 	
 	//Ability_Fight
 	FGameplayTag Ability_Fight_NormalAttack= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.NormalAttack"));
