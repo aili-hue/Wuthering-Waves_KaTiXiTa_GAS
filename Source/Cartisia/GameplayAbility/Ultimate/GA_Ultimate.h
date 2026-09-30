@@ -42,6 +42,9 @@ public:
 	UPROPERTY()
 	ALevelSequenceActor* SequenceActor;
 	
+	UPROPERTY(EditAnywhere, Category = "GameplayEffect")
+	TSubclassOf<UGameplayEffect> UltimateEffect;
+	
 	UFUNCTION()
 	void OnSequenceFinished();
 };

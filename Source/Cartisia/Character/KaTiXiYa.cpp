@@ -10,6 +10,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Cartisia/Actor/Arms/Actor_Arms.h"
+#include "Cartisia/DataAsset/AbilitySet/DA_AbilitySet.h"
+
 
 // Sets default values
 AKaTiXiYa::AKaTiXiYa()
@@ -28,6 +30,10 @@ AKaTiXiYa::AKaTiXiYa()
 	
 	DollMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DollMesh"));
 	DollMesh->SetupAttachment(GetMesh(),TEXT("Bip001RHandDoll"));
+	
+	SkeletalMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
+	SkeletalMesh->SetupAttachment(GetMesh(),TEXT("Jian"));
+	SkeletalMesh->SetVisibility(false);
 }
 
 // Called when the game starts or when spawned
@@ -37,7 +43,7 @@ void AKaTiXiYa::BeginPlay()
 	
 	InitInputMappingContext();
 	Data_LandedEvent();
-	SpawnAttachmentActor();
+	SpawnAttachmentActor(WeaponMesh,WeaponSocket);
 	
 	if(DollMesh)
 	{
@@ -47,6 +53,7 @@ void AKaTiXiYa::BeginPlay()
 	if (AbilitySystemComponent)
 	{
 		DollHandle= AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).AddUObject(this,&ThisClass::DollEvent);
+		UltimateFormHandle= AbilitySystemComponent->RegisterGameplayTagEvent(State_Form_UltimateTag).AddUObject(this,&ThisClass::OnUltimateFormChanged);
 	}
 }
 
@@ -61,19 +68,20 @@ void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
 }
 
 
-void AKaTiXiYa::SpawnAttachmentActor()
+void AKaTiXiYa::SpawnAttachmentActor(TSubclassOf<AActor> WeaponMeshs,FName SocketName)
 {
-	if (!WeaponMesh || AttachmentActor)return;
+	if (!WeaponMeshs)return;
+	if (AttachmentActor)AttachmentActor=nullptr;
+	
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = this;
 	SpawnInfo.Instigator =this;
 	SpawnInfo.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AttachmentActor = GetWorld()->SpawnActor<AActor>(WeaponMesh,SpawnInfo);
+	AttachmentActor = GetWorld()->SpawnActor<AActor>(WeaponMeshs,SpawnInfo);
 	if (AttachmentActor)
 	{
-		AttachmentActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,WeaponSocket);
+		AttachmentActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale,SocketName);
 	}
-	AttachmentActor->SetActorRelativeScale3D(FVector(0.008f));
 }
 
 void AKaTiXiYa::InitInputMappingContext()
@@ -350,7 +358,6 @@ void AKaTiXiYa::SpeedSwitching()
 	}
 }
 
-
 void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 {
 	if (AbilitySystemComponent)
@@ -382,7 +389,35 @@ void AKaTiXiYa::Data_LandedEvent()
 
 void AKaTiXiYa::SwitchAbilitySet(UDA_AbilitySet* NewAbilitySet)
 {
+	if (!AbilitySystemComponent|| !NewAbilitySet)return;
 	
+	for (const FGameplayAbilitySpecHandle& Handle : CurrentAbilityHandles)
+	{
+		AbilitySystemComponent->ClearAbility(Handle);
+	}
+	CurrentAbilityHandles.Empty();
+	
+	for (const FAbility& Entry : NewAbilitySet->Abilities)
+	{
+		if (Entry.Ability)
+		{
+			FGameplayAbilitySpec Spec(Entry.Ability, 1.f, INDEX_NONE, this);
+			FGameplayAbilitySpecHandle Handle= AbilitySystemComponent->GiveAbility(Spec);
+			CurrentAbilityHandles.Add(Handle);
+		}
+	}
+}
+
+void AKaTiXiYa::OnUltimateFormChanged(FGameplayTag EventTag, int32 NewValue)
+{
+	if (NewValue>0)
+	{
+		SpawnAttachmentActor(SwordMesh,SwordName);
+		SwitchAbilitySet(UltimateAbilitySet);
+		return;
+	}
+	SwitchAbilitySet(BaseAbilitySet);
+	SpawnAttachmentActor(WeaponMesh,WeaponSocket);
 }
 
 // Called every frame
@@ -466,10 +501,8 @@ void AKaTiXiYa::PossessedBy(AController* NewController)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this,this);
-		for (const TSubclassOf<UGameplayAbility>& Ability : GameplayAbility)
-		{
-			AbilitySystemComponent->GiveAbility(Ability);
-		}
+		
+		SwitchAbilitySet(BaseAbilitySet);
 	}
 	
 }
@@ -531,6 +564,7 @@ void AKaTiXiYa::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->RegisterGameplayTagEvent(State_Visual_Doll).Remove(DollHandle);
+		AbilitySystemComponent->RegisterGameplayTagEvent(State_Form_UltimateTag).Remove(UltimateFormHandle);
 	}
 	if (AttachmentActor)
 	{

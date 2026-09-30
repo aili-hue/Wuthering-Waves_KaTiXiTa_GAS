@@ -9,6 +9,7 @@
 #include "GameplayTagContainer.h"
 #include "KaTiXiYa.generated.h"
 
+struct FGameplayAbilitySpecHandle;
 class UDA_AbilitySet;
 class UGameplayEffect;
 struct FGameplayTag;
@@ -42,13 +43,20 @@ public:
 	TObjectPtr<USpringArmComponent>SpringArmComponent;
 	
 protected:
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 	//Mesh
 	
 	UPROPERTY(EditAnywhere)
+	TObjectPtr<USkeletalMeshComponent>SkeletalMesh;
+	
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor>WeaponMesh;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor>SwordMesh;
 	
 	UPROPERTY()
 	TObjectPtr<AActor>AttachmentActor;
@@ -56,7 +64,10 @@ protected:
 	UPROPERTY(EditAnywhere,Category="MeshName")
 	FName WeaponSocket;
 	
-	void SpawnAttachmentActor();
+	UPROPERTY(EditAnywhere,Category="MeshName")
+	FName SwordName;
+	
+	void SpawnAttachmentActor(TSubclassOf<AActor> WeaponMeshs,FName SocketName);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
 	TObjectPtr<USkeletalMeshComponent> DollMesh;
@@ -173,9 +184,6 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Attributes")
 	TObjectPtr<UPlayerAttributes>PlayerAttributes;
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="GameplayAbility")
-	TArray<TSubclassOf<UGameplayAbility>> GameplayAbility;
-	
 	//GameplayTag
 	
 	//Ability
@@ -216,6 +224,8 @@ protected:
 	FGameplayTag State_ContinuousInterruption=FGameplayTag::RequestGameplayTag(FName("State.ContinuousInterruption"));
 	//切换模型
 	FGameplayTag State_Visual_Doll=FGameplayTag::RequestGameplayTag(FName("State.Visual.Doll"));
+	//变身
+	FGameplayTag State_Form_UltimateTag= FGameplayTag::RequestGameplayTag(FName("State.Form.Ultimate"));
 	
 	UFUNCTION()
 	void DollEvent(FGameplayTag EventTag,int32 Number);
@@ -267,7 +277,7 @@ protected:
 	
 	//技能组
 	
-	UPROPERTY(EditAnywhere,Category="DA_AbilitySet")
+	UPROPERTY(EditAnywhere,Category="AbilitySet")
 	TObjectPtr<UDA_AbilitySet>BaseAbilitySet;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "AbilitySet")
@@ -275,6 +285,14 @@ protected:
 
 	// 切换技能组
 	void SwitchAbilitySet(UDA_AbilitySet* NewAbilitySet);
+	
+	// 记录当前已授予的技能 Handle，用于下次切换时回收
+	TArray<FGameplayAbilitySpecHandle> CurrentAbilityHandles;
+	
+	UFUNCTION()
+	void OnUltimateFormChanged(FGameplayTag EventTag,int32 NewValue);
+	
+	FDelegateHandle UltimateFormHandle;
 	
 public:	
 	// Called every frame

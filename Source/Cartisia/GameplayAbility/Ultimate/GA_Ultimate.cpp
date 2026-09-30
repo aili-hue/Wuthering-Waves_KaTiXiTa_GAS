@@ -8,7 +8,8 @@
 #include "MovieSceneSequencePlaybackSettings.h"
 #include "Cartisia/Character/KaTiXiYa.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "GameFramework/SpringArmComponent.h"
+#include "AbilitySystemComponent.h"
 
 void UGA_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                    const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -17,6 +18,10 @@ void UGA_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
  
 	if (AKaTiXiYa* Hero = Cast<AKaTiXiYa>(GetAvatarActorFromActorInfo()))
 	{
+		if (USpringArmComponent* SpringArm= Hero->SpringArmComponent)
+		{
+			SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 120.f));
+		}
 		if (USkeletalMeshComponent* MeshComp = Hero->GetMesh())
 		{
 			if (UltimateAnimBP)
@@ -35,7 +40,6 @@ void UGA_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		Settings.bDisableMovementInput = true;
 		Settings.bDisableLookAtInput = true;
 		Settings.bHidePlayer = false; // 确保不隐藏真实角色
- 
 		// 2. 创建播放器
 		SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(
 			GetWorld(), 
@@ -56,15 +60,15 @@ void UGA_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 			// 4. 监听结束并开始播放
 			SequencePlayer->OnFinished.AddDynamic(this, &UGA_Ultimate::OnSequenceFinished);
 			SequencePlayer->Play();
- 
+			
 			// 5. 物理模式保护：切换至 Flying 消除重力干扰，防止由于镜头旋转导致的位移偏差
 			Hero->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			Hero->GetCharacterMovement()->StopMovementImmediately();
 		}
-		else
-		{
-			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		}
+	}
+	else
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 	
 }
@@ -77,10 +81,25 @@ void UGA_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UGA_Ultimate::OnSequenceFinished()
 {
-	if (ACharacter* MyCharacter = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	if (AKaTiXiYa* Hero = Cast<AKaTiXiYa>(GetAvatarActorFromActorInfo()))
 	{
-		MyCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		if (USpringArmComponent* SpringArm= Hero->SpringArmComponent)
+		{
+			SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 120.f));
+		}
+		Hero->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
-	
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+	{
+		if (AbilitySystemComponent && UltimateEffect)
+		{
+			FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+			FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(UltimateEffect,1.f,ContextHandle);
+			if (EffectSpecHandle.IsValid())
+			{
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+			}
+		}
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
