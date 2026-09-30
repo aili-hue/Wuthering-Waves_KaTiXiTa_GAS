@@ -6,7 +6,6 @@
 #include "Cartisia/AttributeSet/PlayerAttributes.h"
 
 
-
 UGA_Walk::UGA_Walk()
 {
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -35,7 +34,7 @@ void UGA_Walk::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 			}
 		}
 	}
-	
+	EndAbility(Handle, ActorInfo, ActivationInfo,true,true);
 }
 
 void UGA_Walk::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

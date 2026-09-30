@@ -9,6 +9,7 @@
 #include "GameplayTagContainer.h"
 #include "KaTiXiYa.generated.h"
 
+class UDA_AbilitySet;
 class UGameplayEffect;
 struct FGameplayTag;
 class UPlayerAttributes;
@@ -36,7 +37,10 @@ class CARTISIA_API AKaTiXiYa : public ACharacter , public IAbilitySystemInterfac
 public:
 	// Sets default values for this character's properties
 	AKaTiXiYa();
-
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SpringArm")
+	TObjectPtr<USpringArmComponent>SpringArmComponent;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -58,9 +62,6 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> DollMesh;
 	
 	//lens
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SpringArm")
-	TObjectPtr<USpringArmComponent>SpringArmComponent;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Camera")
 	TObjectPtr<UCameraComponent> CameraComponent;
@@ -108,6 +109,9 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
 	TObjectPtr<UInputAction> IA_E;
 	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="InputAction")
+	TObjectPtr<UInputAction> IA_Q;
+	
 	//Init
 	UFUNCTION()
 	void InitInputMappingContext();
@@ -150,6 +154,9 @@ protected:
 	UFUNCTION()
 	void E_Event(const FInputActionValue&InputEvent);
 	
+	UFUNCTION()
+	void Q_Event(const FInputActionValue&InputEvent);
+	
 	//Landed
 	
 	float LandedTime= 0.f;
@@ -179,6 +186,7 @@ protected:
 	FGameplayTag Ability_LandedTag= FGameplayTag::RequestGameplayTag(FName("Ability.Landed"));
 	FGameplayTag Ability_DoubleJumpTag=FGameplayTag::RequestGameplayTag(FName("Ability.DoubleJump"));
 	FGameplayTag Ability_SkillTag= FGameplayTag::RequestGameplayTag(FName("Ability.Skill"));
+	FGameplayTag Ability_UltimateTag= FGameplayTag::RequestGameplayTag(FName("Ability.Ultimate"));
 	
 	//Ability_Fight
 	FGameplayTag Ability_Fight_NormalAttack= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.NormalAttack"));
@@ -256,6 +264,17 @@ protected:
 	
 	//是否重击
 	uint8 bHeavyAttackAutoTriggered :1= false;
+	
+	//技能组
+	
+	UPROPERTY(EditAnywhere,Category="DA_AbilitySet")
+	TObjectPtr<UDA_AbilitySet>BaseAbilitySet;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "AbilitySet")
+	TObjectPtr<UDA_AbilitySet> UltimateAbilitySet;
+
+	// 切换技能组
+	void SwitchAbilitySet(UDA_AbilitySet* NewAbilitySet);
 	
 public:	
 	// Called every frame

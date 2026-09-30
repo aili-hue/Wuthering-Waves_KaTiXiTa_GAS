@@ -290,6 +290,17 @@ void AKaTiXiYa::E_Event(const FInputActionValue& InputEvent)
 	}
 }
 
+void AKaTiXiYa::Q_Event(const FInputActionValue& InputEvent)
+{
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Ability_UltimateTag;
+		AbilitySystemComponent->HandleGameplayEvent(Ability_UltimateTag,&Data);
+	}
+}
+
 void AKaTiXiYa::LandedEvent()
 {
 	float Time=GetWorld()->TimeSeconds-LandedTime;
@@ -369,6 +380,11 @@ void AKaTiXiYa::Data_LandedEvent()
 	}
 }
 
+void AKaTiXiYa::SwitchAbilitySet(UDA_AbilitySet* NewAbilitySet)
+{
+	
+}
+
 // Called every frame
 void AKaTiXiYa::Tick(float DeltaTime)
 {
@@ -436,6 +452,10 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		if (IA_E)
 		{
 			EnhancedInputComponent->BindAction(IA_E,ETriggerEvent::Started,this,&ThisClass::E_Event);
+		}
+		if (IA_Q)
+		{
+			EnhancedInputComponent->BindAction(IA_Q,ETriggerEvent::Started,this,&ThisClass::Q_Event);
 		}
 	}
 }
