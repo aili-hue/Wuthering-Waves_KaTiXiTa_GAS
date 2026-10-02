@@ -35,8 +35,11 @@ protected:
 	TSubclassOf<UGameplayEffect> GameplayEffect;
 	
 	//特效Tag
-	FGameplayTag GC_AttackEffect=FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Matrix"));
-	FGameplayTag GC_Attack_Gravity=FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Gravity"));
+	UPROPERTY(EditAnywhere,Category="GameplayCue")
+	FGameplayTag GC_Attack_2;
+	
+	UPROPERTY(EditAnywhere,Category="GameplayCue")
+	FGameplayTag GC_Attack_3;
 	
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	

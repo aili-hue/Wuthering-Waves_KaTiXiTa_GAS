@@ -58,10 +58,16 @@ void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 		switch (TargetMoveIndex)
 		{
 		case 2:
-			AbilitySystemComponent->ExecuteGameplayCue(GC_AttackEffect, Params);
+			if (GC_Attack_2.IsValid())
+			{
+				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_2, Params);
+			}
 			break;
 		case 3:
-			AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_Gravity, Params);
+			if (GC_Attack_3.IsValid())
+			{
+				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_3, Params);
+			}
 			break;
 		default:
 			break;
