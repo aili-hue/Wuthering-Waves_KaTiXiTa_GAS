@@ -56,6 +56,13 @@ void UGA_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGamep
 			AnimInstance->Montage_Stop(0.2f);
 		}
 	}
-	
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance())
+		{
+			float BlendTime= bWasCancelled ? 0.1f : 0.2f;
+			AnimInstance->Montage_Stop(BlendTime);
+		}
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

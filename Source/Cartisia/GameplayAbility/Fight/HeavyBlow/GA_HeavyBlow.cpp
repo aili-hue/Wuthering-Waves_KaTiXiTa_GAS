@@ -4,6 +4,7 @@
 #include "GA_HeavyBlow.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/Character.h"
 
 UGA_HeavyBlow::UGA_HeavyBlow()
 {
@@ -39,5 +40,13 @@ void UGA_HeavyBlow::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 void UGA_HeavyBlow::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance())
+		{
+			float BlendTime= bWasCancelled ? 0.1f : 0.2f;
+			AnimInstance->Montage_Stop(BlendTime);
+		}
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

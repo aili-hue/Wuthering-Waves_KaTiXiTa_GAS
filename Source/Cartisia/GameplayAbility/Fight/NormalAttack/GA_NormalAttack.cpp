@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "GameFramework/Character.h"
 
 UGA_NormalAttack::UGA_NormalAttack()
 {
@@ -128,6 +129,14 @@ void UGA_NormalAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		{
 			AbilitySystemComponent->RemoveActiveGameplayEffect(ActiveGameplayEffectHandle);
 			ActiveGameplayEffectHandle.Invalidate();
+		}
+	}
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance())
+		{
+			float BlendTime= bWasCancelled ? 0.1f : 0.2f;
+			AnimInstance->Montage_Stop(BlendTime);
 		}
 	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

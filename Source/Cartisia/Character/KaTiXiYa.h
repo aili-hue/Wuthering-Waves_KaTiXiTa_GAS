@@ -151,9 +151,6 @@ protected:
 	void SpaceEvent(const FInputActionValue&InputEvent);
 	
 	UFUNCTION()
-	void EndSpaceEvent(const FInputActionValue&InputEvent);
-	
-	UFUNCTION()
 	void AttackInputStarted(const FInputActionValue&InputEvent);
 	
 	UFUNCTION()
@@ -207,6 +204,7 @@ protected:
 	FGameplayTag Data_MovingTag= FGameplayTag::RequestGameplayTag(FName("Data.Moving"));
 	FGameplayTag Data_AttackTag= FGameplayTag::RequestGameplayTag(FName("Data.Attack"));
 	FGameplayTag Data_StopGATag= FGameplayTag::RequestGameplayTag(FName("Data.StopGA"));
+	FGameplayTag Data_JumpTag= FGameplayTag::RequestGameplayTag(FName("Data.Jump"));
 	
 	//InterruptAnimation
 	

@@ -16,30 +16,35 @@ class CARTISIA_API UGA_FallingAttack : public UGameplayAbility
 public:
 	UGA_FallingAttack();
 	
-	UPROPERTY(EditAnywhere,Category="AnimMontage")
-	TObjectPtr<UAnimMontage> PlayMontageAndWait;
+	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage>JumpAnimMontage;
 	
-	uint8 bIsLoopMontage=false;
+	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage>LoopAnimMontage;
 	
-	UFUNCTION()
-	void PlayMontage(UAnimMontage* Montage);
+	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage>EndAnimMontage;
 	
-	UFUNCTION()
-	void GeneralMontage(UAnimMontage* Montage);
-	
-	UFUNCTION()
-	void LoopMontage_Name();
-	
-	FName MontageName= "Default";
-	FGameplayTag Data_LandedTag= FGameplayTag::RequestGameplayTag(FName("Data.Landed"));
+	void PlayMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION()
-	void LoopMontage();
+	void PlayLoopAnimMontage();
 	
 	UFUNCTION()
-	void EndMontage();
+	void EndAttack();
+	
+	UFUNCTION()
+	void EndAnimMontageAttack();
+	
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	
+	UFUNCTION()
+	void PlayEndAnimMontage(FGameplayTag EndTag, int32 Number);
+	
+	uint8 bCanEndAbility : 1 =true;
+	
+	FDelegateHandle EndHandle;
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)override;
-	
 };

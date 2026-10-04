@@ -206,6 +206,8 @@ void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
 	
 	if (AbilitySystemComponent)
 	{
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_JumpTag))return;
+		
 		for (const FGameplayTag& Tag: AbilityTag)
 		{
 			InterruptAnimation(Tag);
@@ -215,17 +217,6 @@ void AKaTiXiYa::SpaceEvent(const FInputActionValue& InputEvent)
 		Data.Instigator=this;
 		Data.EventTag=Ability_Jump;
 		AbilitySystemComponent->HandleGameplayEvent(Ability_Jump,&Data);
-	}
-}
-
-void AKaTiXiYa::EndSpaceEvent(const FInputActionValue& InputEvent)
-{
-	if (AbilitySystemComponent)
-	{
-		FGameplayEventData Data;
-		Data.Instigator=this;
-		Data.EventTag=Event_AbilityJumpTag;
-		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
 	}
 }
 
@@ -311,6 +302,15 @@ void AKaTiXiYa::Q_Event(const FInputActionValue& InputEvent)
 
 void AKaTiXiYa::LandedEvent()
 {
+	
+	if (AbilitySystemComponent)
+	{
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Event_AbilityJumpTag;
+		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
+	}
+	
 	float Time=GetWorld()->TimeSeconds-LandedTime;
 	
 	if (AbilitySystemComponent)
@@ -358,6 +358,7 @@ void AKaTiXiYa::SpeedSwitching()
 	}
 }
 
+
 void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 {
 	if (AbilitySystemComponent)
@@ -370,6 +371,7 @@ void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 		}
 	}
 }
+
 
 void AKaTiXiYa::Data_LandedEvent()
 {
@@ -476,7 +478,7 @@ void AKaTiXiYa::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		if (IA_Space)
 		{
 			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Started,this,&ThisClass::SpaceEvent);
-			EnhancedInputComponent->BindAction(IA_Space,ETriggerEvent::Completed,this,&ThisClass::EndSpaceEvent);
+			
 		}
 		if (IA_Left_MouseButton)
 		{
@@ -553,9 +555,8 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 	if (PreviousMovementMode== MOVE_Falling && (GetCharacterMovement()->MovementMode == MOVE_Walking|| GetCharacterMovement()->MovementMode == MOVE_NavWalking))
 	{
 		InterruptAnimation(Ability_DoubleJumpTag);
-		LandedEvent();
-		
 		Data_LandedEvent();
+		LandedEvent();
 	}
 }
 

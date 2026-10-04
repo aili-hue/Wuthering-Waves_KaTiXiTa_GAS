@@ -24,6 +24,39 @@ public:
 	FActiveGameplayEffectHandle EffectHandle;
 	
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	
+	UPROPERTY(EditAnywhere, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage>JumpAnimMontage;
+	
+	UPROPERTY(EditAnywhere, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage> LoopAnimMontage;
+	
+	UPROPERTY(EditAnywhere, Category = "AnimMontage")
+	TObjectPtr<UAnimMontage> LandAnimMontage;
+	
+	UFUNCTION()
+	void LandMontage();
+	
+	/*void PlayLandMontage(UAnimMontage* MontageToPlay);*/
+	
+	UFUNCTION()
+	void LoopPlayMontage();
+	
+	UFUNCTION()
+	void EndLandMontage();
+	
+	uint8 bLand :1 = false;
+	
+	UFUNCTION()
+	void EndJumpMontage();
+	
+	FDelegateHandle LandHandle;
+	
+	UPROPERTY(EditAnywhere, Category = "Jump")
+	bool bPhysicaljumps= false;
+	
+	void PlayMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION()
 	void EndMontage(FGameplayEventData Data);
