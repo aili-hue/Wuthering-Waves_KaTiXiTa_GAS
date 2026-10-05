@@ -42,7 +42,11 @@ void UGA_Jump::PlayLandMontage(UAnimMontage* MontageToPlay)
 
 void UGA_Jump::LoopPlayMontage()
 {
-	if (!LoopAnimMontage)EndLandMontage();
+	if (!LoopAnimMontage)
+	{
+		EndLandMontage();
+		return;
+	}
 	
 	if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None,LoopAnimMontage,1.f,NAME_None))
 	{

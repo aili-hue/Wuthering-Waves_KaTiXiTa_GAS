@@ -248,8 +248,7 @@ void AKaTiXiYa::AttackInputHold(const FInputActionValue& InputEvent)
 
 void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
 {
-	
-	if (AbilitySystemComponent && !bHeavyAttackAutoTriggered)
+	if (AbilitySystemComponent)
 	{
 		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_AttackTag))
 		{
@@ -259,6 +258,7 @@ void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
 				EventData.Instigator=this;
 				EventData.EventTag=Event_Attack;
 				AbilitySystemComponent->HandleGameplayEvent(Event_Attack,&EventData);
+				
 				return;
 			}
 			if (AbilitySystemComponent->HasMatchingGameplayTag(Data_StopGATag))
@@ -268,10 +268,13 @@ void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
 				AbilitySystemComponent->CancelAbilities(&Container);
 			}
 		}
-		FGameplayEventData Data;
-		Data.Instigator=this;
-		Data.EventTag=Ability_Fight_NormalAttack;
-		AbilitySystemComponent->HandleGameplayEvent(Ability_Fight_NormalAttack,&Data);
+		if (!bHeavyAttackAutoTriggered)
+		{
+			FGameplayEventData Data;
+			Data.Instigator=this;
+			Data.EventTag=Ability_Fight_NormalAttack;
+			AbilitySystemComponent->HandleGameplayEvent(Ability_Fight_NormalAttack,&Data);
+		}
 	}
 	
 	AttackStartTime= 0;
