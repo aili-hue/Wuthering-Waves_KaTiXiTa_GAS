@@ -76,6 +76,13 @@ void UGA_Jump::PlayMontage(UAnimMontage* MontageToPlay)
 
 void UGA_Jump::EndMontage(FGameplayEventData Data)
 {
+	
+	if (bPhysicaljumps)
+	{
+		UE_LOG(LogTemp,Error,TEXT("测试"));
+		EndLandMontage();
+		return;
+	}
 	LandMontage();
 }
 
@@ -121,8 +128,6 @@ void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 void UGA_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	UE_LOG(LogTemp,Error,TEXT("测试"));
-	
 	bLand= false;
 	
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
