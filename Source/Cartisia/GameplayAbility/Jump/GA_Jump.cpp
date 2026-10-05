@@ -79,7 +79,6 @@ void UGA_Jump::EndMontage(FGameplayEventData Data)
 	
 	if (bPhysicaljumps)
 	{
-		UE_LOG(LogTemp,Error,TEXT("测试"));
 		EndLandMontage();
 		return;
 	}
