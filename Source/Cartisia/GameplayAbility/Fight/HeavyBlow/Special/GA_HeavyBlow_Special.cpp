@@ -39,7 +39,7 @@ void UGA_HeavyBlow_Special::SpecialEndMontage()
 
 void UGA_HeavyBlow_Special::WaitGameplayEvent(FGameplayEventData Data)
 {
-	if (SpecialMontage)
+	if (SpecialMontage && !bSpecialAttack)
 	{
 		bSpecialAttack=true;
 		
@@ -48,6 +48,22 @@ void UGA_HeavyBlow_Special::WaitGameplayEvent(FGameplayEventData Data)
 			PlayMontageAndWait->OnCompleted.AddDynamic(this,&ThisClass::EndMontage);
 			PlayMontageAndWait->OnInterrupted.AddDynamic(this,&ThisClass::EndMontage);
 			PlayMontageAndWait->ReadyForActivation();
+		}
+		return;
+	}
+	//如果已经触发过特殊攻击，那就执行这个JumpAbility
+	if (bSpecialAttack&& !bIsConnectionJump)
+	{
+		bIsConnectionJump= true;
+		if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+		{
+			FGameplayEventData JumpData;
+			JumpData.Instigator= Character;
+			JumpData.EventTag= Ability_Jump;
+			if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+			{
+				AbilitySystemComponent->HandleGameplayEvent(Ability_Jump,&JumpData);
+			}
 		}
 	}
 }
@@ -82,7 +98,9 @@ void UGA_HeavyBlow_Special::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
-	bSpecialAttack=false;
+	
+	bSpecialAttack= false;
+	bIsConnectionJump= false;
 	
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 	{
@@ -95,10 +113,10 @@ void UGA_HeavyBlow_Special::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
-		if (UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance())
+		if (UAnimInstance* CharacterAnim = Character->GetMesh()->GetAnimInstance())
 		{
 			float BlendTime= bWasCancelled ? 0.1f : 0.2f;
-			AnimInstance->Montage_Stop(BlendTime);
+			CharacterAnim->Montage_Stop(BlendTime);
 		}
 	}
 	

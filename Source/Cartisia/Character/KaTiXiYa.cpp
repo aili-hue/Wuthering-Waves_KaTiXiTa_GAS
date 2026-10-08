@@ -250,8 +250,11 @@ void AKaTiXiYa::AttackInputReleased(const FInputActionValue& InputEvent)
 {
 	if (AbilitySystemComponent)
 	{
+		//如果GA赋予角色连招状态Data_AttackTag
 		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_AttackTag))
 		{
+			//如果有打断tag，让后GA在动画蒙太奇通知特定时间应用State_ContinuousInterruption，角色就发送连招Event_Attack
+			
 			if (AbilitySystemComponent->HasMatchingGameplayTag(State_ContinuousInterruption))
 			{
 				FGameplayEventData EventData;
@@ -346,7 +349,14 @@ void AKaTiXiYa::LandedEvent()
 			FallingHandle.Invalidate();
 		}
 	}
-	
+	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
+	{
+		if (FlingHandle.IsValid())
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffect(FlingHandle);
+			FlingHandle.Invalidate();
+		}
+	}
 }
 
 void AKaTiXiYa::SpeedSwitching()
@@ -527,8 +537,19 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 	
 	if (!AbilitySystemComponent)return;
 	
+	//坠落
 	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
+		//销毁Flying
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
+		{
+			if (FlingHandle.IsValid())
+			{
+				AbilitySystemComponent->RemoveActiveGameplayEffect(FlingHandle);
+				FlingHandle.Invalidate();
+			}
+		}
+		
 		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
 		{
 			if (BuffEffect.Find(Data_FallingTag))
@@ -555,11 +576,37 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 		
 	}
 	
+	//从掉落到落地
 	if (PreviousMovementMode== MOVE_Falling && (GetCharacterMovement()->MovementMode == MOVE_Walking|| GetCharacterMovement()->MovementMode == MOVE_NavWalking))
 	{
 		InterruptAnimation(Ability_DoubleJumpTag);
 		Data_LandedEvent();
 		LandedEvent();
+	}
+	
+	//飞行模式
+	if (GetCharacterMovement()->MovementMode == MOVE_Flying)
+	{
+		//取消掉JumpGA
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_JumpTag))
+		{
+			FGameplayTagContainer Container;
+			Container.AddTag(Ability_Jump);
+			AbilitySystemComponent->CancelAbilities(&Container);
+		}
+		
+		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
+		{
+			if (BuffEffect.Find(Data_FlyingTag))
+			{
+				FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+				FGameplayEffectSpecHandle SpecHandle= AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_FlyingTag],1.f,ContextHandle);
+				if (SpecHandle.IsValid())
+				{
+					FlingHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+			}
+		}
 	}
 }
 

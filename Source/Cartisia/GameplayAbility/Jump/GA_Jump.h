@@ -21,10 +21,24 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GamepalyEffect")
 	TSubclassOf<UGameplayEffect> JumpEffect;
 	
+	//连招GE
+	UPROPERTY(EditAnywhere, Category = "GamepalyEffect")
+	TSubclassOf<UGameplayEffect> GameplayEffect;
+	
+	//接受角色发送的允许连招Tag
+	FGameplayTag Event_Attack= FGameplayTag::RequestGameplayTag(FName("Event.Attack"));
+	
+	UFUNCTION()
+	void WaitGameplayEvent(FGameplayEventData Data);
+	
+	FGameplayTag Ability_Fight_AirAttack= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.AirAttack"));
+	
 	FActiveGameplayEffectHandle EffectHandle;
+	FActiveGameplayEffectHandle GameplayEffectHandle;
 	
 	FGameplayTag Event_AbilityJumpTag= FGameplayTag::RequestGameplayTag(FName("Event.EndAbilityJump"));
-	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Airborne.Falling"));
+	FGameplayTag Data_FlyingTag= FGameplayTag::RequestGameplayTag(FName("Data.Airborne.Flying"));
 	
 	UPROPERTY(EditAnywhere, Category = "AnimMontage")
 	TObjectPtr<UAnimMontage>JumpAnimMontage;

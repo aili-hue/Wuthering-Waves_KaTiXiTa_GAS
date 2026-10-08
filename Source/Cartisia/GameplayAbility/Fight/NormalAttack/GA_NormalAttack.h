@@ -8,7 +8,7 @@
 
 
 USTRUCT(BlueprintType)
-struct FFightStruct
+struct FAirAttackFight
 {
 	GENERATED_BODY()
 	
@@ -29,7 +29,7 @@ protected:
 	UGA_NormalAttack();
 	
 	UPROPERTY(EditAnywhere,Category="FightStruct")
-	TArray<FFightStruct> FightStructs;
+	TArray<FAirAttackFight> FightStructs;
 	
 	UPROPERTY(EditAnywhere,Category="GameplayEffect")
 	TSubclassOf<UGameplayEffect> GameplayEffect;
@@ -44,7 +44,7 @@ protected:
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	
 	UFUNCTION()
-	void PlayMontage(const FFightStruct& FightStruct);
+	void PlayMontage(const FAirAttackFight& FightStruct);
 	
 	UFUNCTION()
 	void EndMontage();

@@ -36,7 +36,7 @@ public:
 	UFUNCTION()
 	void EndAnimMontageAttack();
 	
-	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Airborne.Falling"));
 	
 	UFUNCTION()
 	void PlayEndAnimMontage(FGameplayTag EndTag, int32 Number);

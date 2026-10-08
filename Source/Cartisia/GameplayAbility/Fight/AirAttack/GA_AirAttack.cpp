@@ -1,20 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA_NormalAttack.h"
+#include "GA_AirAttack.h"
 
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
 
-UGA_NormalAttack::UGA_NormalAttack()
+UGA_AirAttack::UGA_AirAttack()
 {
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
-void UGA_NormalAttack::PlayMontage(const FAirAttackFight& FightStruct)
+void UGA_AirAttack::PlayMontage(const FAirAttackFightData& FightStruct)
 {
+	
 	if (FightStruct.Montage)
 	{
 		if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait= UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None,FightStruct.Montage,1.f,NAME_None))
@@ -26,66 +27,47 @@ void UGA_NormalAttack::PlayMontage(const FAirAttackFight& FightStruct)
 	}
 }
 
-void UGA_NormalAttack::EndMontage()
+void UGA_AirAttack::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
-void UGA_NormalAttack::Interrupted()
+
+void UGA_AirAttack::Interrupted()
 {
 	if (bIsCombo)
 	{
 		bIsCombo=false;
 		return;
 	}
+	
 	EndMontage();
 }
 
-void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
+void UGA_AirAttack::WaitGameplayEvent(FGameplayEventData EventData)
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+	const int32 NextIndex = CurrentMove + 1;
+
+	// 已经到连招末尾,触发下落攻击结束技能
+	if (NextIndex >= FightStructs.Num())
 	{
-		const int32 TargetMoveIndex = (CurrentMove + 1) % FightStructs.Num();
-		
-		CurrentMove = TargetMoveIndex;
-		bIsCombo = true;
-		
-		FGameplayCueParameters Params;
-		Params.EffectCauser = GetAvatarActorFromActorInfo();
-		Params.Instigator = GetAvatarActorFromActorInfo();
-		Params.Location = GetAvatarActorFromActorInfo()->GetActorLocation();
-		Params.RawMagnitude = FightStructs[TargetMoveIndex].Magnification;
- 
-		switch (TargetMoveIndex)
-		{
-		case 2:
-			if (GC_Attack_2.IsValid())
-			{
-				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_2, Params);
-			}
-			break;
-		case 3:
-			if (GC_Attack_3.IsValid())
-			{
-				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_3, Params);
-			}
-			break;
-		default:
-			break;
-		}
-		
-		PlayMontage(FightStructs[CurrentMove]);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
 	}
+
+	CurrentMove = NextIndex;
+	bIsCombo = true;
+
+	PlayMontage(FightStructs[CurrentMove]);
 }
 
-void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                       const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                       const FGameplayEventData* TriggerEventData)
+void UGA_AirAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                    const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 	{
+		
 		if (UAbilityTask_WaitGameplayEvent* WaitGameplayEvent=UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,Event_Attack))
 		{
 			WaitGameplayEvent->EventReceived.AddDynamic(this,&ThisClass::WaitGameplayEvent);
@@ -117,10 +99,9 @@ void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 }
 
-void UGA_NormalAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UGA_AirAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	
 	CurrentMove= 0;
 	bIsCombo = false;
 	
@@ -140,5 +121,6 @@ void UGA_NormalAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 			AnimInstance->Montage_Stop(BlendTime);
 		}
 	}
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

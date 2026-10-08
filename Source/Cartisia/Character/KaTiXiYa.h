@@ -200,11 +200,12 @@ protected:
 	//Data
 	FGameplayTag Data_StopTag= FGameplayTag::RequestGameplayTag(FName("Data.Stop"));
 	FGameplayTag Data_LandedTag= FGameplayTag::RequestGameplayTag(FName("Data.Landed"));
-	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Falling"));
+	FGameplayTag Data_FallingTag= FGameplayTag::RequestGameplayTag(FName("Data.Airborne.Falling"));
 	FGameplayTag Data_MovingTag= FGameplayTag::RequestGameplayTag(FName("Data.Moving"));
 	FGameplayTag Data_AttackTag= FGameplayTag::RequestGameplayTag(FName("Data.Attack"));
 	FGameplayTag Data_StopGATag= FGameplayTag::RequestGameplayTag(FName("Data.StopGA"));
 	FGameplayTag Data_JumpTag= FGameplayTag::RequestGameplayTag(FName("Data.Jump"));
+	FGameplayTag Data_FlyingTag= FGameplayTag::RequestGameplayTag(FName("Data.Airborne.Flying"));
 	
 	//InterruptAnimation
 	
@@ -251,6 +252,9 @@ protected:
 	
 	UPROPERTY()
 	FActiveGameplayEffectHandle FallingHandle;
+	
+	UPROPERTY()
+	FActiveGameplayEffectHandle FlingHandle;
 	
 	UPROPERTY()
 	FActiveGameplayEffectHandle MovingHandle;

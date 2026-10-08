@@ -13,6 +13,20 @@ UGA_Jump::UGA_Jump()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+void UGA_Jump::WaitGameplayEvent(FGameplayEventData Data)
+{
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+		{
+			FGameplayEventData EventData;
+			EventData.Instigator= Character;
+			EventData.EventTag =Ability_Fight_AirAttack;
+			AbilitySystemComponent->HandleGameplayEvent(Ability_Fight_AirAttack,&EventData);
+		}
+	}
+}
+
 void UGA_Jump::LandMontage()
 {
 	
@@ -95,16 +109,39 @@ void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
+	if (Event_Attack.IsValid())
+	{
+		if (UAbilityTask_WaitGameplayEvent* WaitGameplayEvent=UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,Event_Attack))
+		{
+			WaitGameplayEvent->EventReceived.AddDynamic(this, &ThisClass::WaitGameplayEvent);
+			WaitGameplayEvent->ReadyForActivation();
+		}
+	}
+	
 	if (UAbilityTask_WaitGameplayEvent* WaitEvent=UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,Event_AbilityJumpTag))
 	{
 		WaitEvent->EventReceived.AddDynamic(this,&UGA_Jump::EndMontage);
 		WaitEvent->ReadyForActivation();
 	}
+	
+	
+	
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
 		if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 		{
 			/*LandHandle= AbilitySystemComponent->RegisterGameplayTagEvent(Data_FallingTag).AddUObject(this,&ThisClass::LandMontage);*/
+			
+			//应用连招GE
+			if (GameplayEffect)
+			{
+				FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+				FGameplayEffectSpecHandle SpecHandle=AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect,1.f,ContextHandle);
+				if (SpecHandle.IsValid())
+				{
+					GameplayEffectHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+			}
 			
 			PlayMontage(JumpAnimMontage);
 			
@@ -142,6 +179,10 @@ void UGA_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGamepl
 		if (LandHandle.IsValid())
 		{
 			AbilitySystemComponent->RegisterGameplayTagEvent(Data_FallingTag).Remove(LandHandle);
+		}
+		if (GameplayEffectHandle.IsValid())
+		{
+			AbilitySystemComponent->RemoveActiveGameplayEffect(GameplayEffectHandle);
 		}
 	}
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
