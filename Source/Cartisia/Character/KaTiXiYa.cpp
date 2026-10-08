@@ -587,13 +587,6 @@ void AKaTiXiYa::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 
 	//飞行模式
 	if (GetCharacterMovement()->MovementMode == MOVE_Flying)
 	{
-		//取消掉JumpGA
-		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_JumpTag))
-		{
-			FGameplayTagContainer Container;
-			Container.AddTag(Ability_Jump);
-			AbilitySystemComponent->CancelAbilities(&Container);
-		}
 		
 		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
 		{

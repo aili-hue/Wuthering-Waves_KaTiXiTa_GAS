@@ -20,6 +20,9 @@ protected:
 	UPROPERTY(EditAnywhere,Category="AnimMontage")
 	TObjectPtr<UAnimMontage>Montage;
 	
+	FGameplayTag Ability_Jump= FGameplayTag::RequestGameplayTag(FName("Ability.Jump"));
+	FGameplayTag Data_JumpTag= FGameplayTag::RequestGameplayTag(FName("Data.Jump"));
+	
 	UFUNCTION()
 	void PlayMontage(UAnimMontage* AnimMontage);
 	

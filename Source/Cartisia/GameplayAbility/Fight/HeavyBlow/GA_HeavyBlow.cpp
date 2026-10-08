@@ -3,6 +3,7 @@
 
 #include "GA_HeavyBlow.h"
 
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
 
@@ -18,6 +19,7 @@ void UGA_HeavyBlow::PlayMontage(UAnimMontage* AnimMontage)
 		if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait=UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None, AnimMontage,1.f,NAME_None))
 		{
 			PlayMontageAndWait->OnCompleted.AddDynamic(this,&ThisClass::EndMontage);
+			PlayMontageAndWait->OnBlendOut.AddDynamic(this,&ThisClass::EndMontage);
 			PlayMontageAndWait->OnInterrupted.AddDynamic(this,&ThisClass::EndMontage);
 			PlayMontageAndWait->ReadyForActivation();
 		}
@@ -26,6 +28,17 @@ void UGA_HeavyBlow::PlayMontage(UAnimMontage* AnimMontage)
 
 void UGA_HeavyBlow::EndMontage()
 {
+	//取消掉JumpGA
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
+	{
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_JumpTag))
+		{
+			FGameplayTagContainer Container;
+			Container.AddTag(Ability_Jump);
+			AbilitySystemComponent->CancelAbilities(&Container);
+		}
+	}
+	
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
