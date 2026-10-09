@@ -71,7 +71,12 @@ void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
 void AKaTiXiYa::SpawnAttachmentActor(TSubclassOf<AActor> WeaponMeshs,FName SocketName)
 {
 	if (!WeaponMeshs)return;
-	if (AttachmentActor)AttachmentActor=nullptr;
+	
+	if (AttachmentActor)
+	{
+		AttachmentActor->Destroy(); 
+		AttachmentActor = nullptr;  
+	}
 	
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.Owner = this;
