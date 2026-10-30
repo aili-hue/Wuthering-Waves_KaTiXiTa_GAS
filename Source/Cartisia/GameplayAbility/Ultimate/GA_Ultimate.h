@@ -45,6 +45,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameplayEffect")
 	TSubclassOf<UGameplayEffect> UltimateEffect;
 	
+	float ArmLength=30.f;
+	
 	UFUNCTION()
 	void OnSequenceFinished();
 };

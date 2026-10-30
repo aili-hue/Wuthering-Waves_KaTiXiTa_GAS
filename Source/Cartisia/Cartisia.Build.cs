@@ -8,7 +8,20 @@ public class Cartisia : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayTags","GameplayAbilities","GameplayTasks","LevelSequence", "MovieScene"});
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayTags","GameplayAbilities","GameplayTasks","LevelSequence", "MovieScene","Renderer",     
+			// FWorldSceneViewExtension / FMeshPassProcessor / FScreenPassVS /
+			// ScenePrivate.h / SceneRendering.h / MeshPassProcessor.inl /
+			// ScreenPass.h / MeshMaterialShader.h / GlobalShader
+			"RenderCore",     // RenderGraphBuilder.h / RenderGraphResources.h /
+			// ShaderParameterStruct.h / ShaderCompilerCore.h
+			"RHI",            // FRHIUniformBuffer / FRHIBlendState
+			"Niagara",        // UWuWaWeaponEffectNotifyState : UAnimNotifyState_TimedNiagaraEffect
+			"KawaiiPhysics",  // FAnimNode_KawaiiPhysics（WuWaPhysicsProfile / AnimInstance）
+			"Json"
+			
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

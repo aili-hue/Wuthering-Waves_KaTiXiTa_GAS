@@ -13,6 +13,7 @@ UGA_HeavyBlow_Special::UGA_HeavyBlow_Special()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+// 作用: 播放蓄力重击蒙太奇, 完成回调结束能力(EndMontage), 被打断回调走SpecialEndMontage(特殊攻击尚未触发时才结束)。
 void UGA_HeavyBlow_Special::PlayMontage(UAnimMontage* AnimMontage)
 {
 	if (AnimMontage)
@@ -26,17 +27,20 @@ void UGA_HeavyBlow_Special::PlayMontage(UAnimMontage* AnimMontage)
 	}
 }
 
+// 作用: 蒙太奇正常完成——结束重击特殊能力。
 void UGA_HeavyBlow_Special::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 蓄力阶段蒙太奇被打断——若特殊攻击已触发(bSpecialAttack)则保持能力(等待特殊攻击状态), 否则按普通重击结束能力。
 void UGA_HeavyBlow_Special::SpecialEndMontage()
 {
 	if (bSpecialAttack)return;
 	EndMontage();
 }
 
+// 作用: 攻击事件(Event.Attack)回调——重击蓄力期间首次收到攻击事件: 触发特殊攻击(播放SpecialMontage); 已触发过特殊攻击后再收到事件: 衔接跳跃(发出 Ability.Jump 事件), 每段仅执行一次。
 void UGA_HeavyBlow_Special::WaitGameplayEvent(FGameplayEventData Data)
 {
 	if (SpecialMontage && !bSpecialAttack)
@@ -68,6 +72,7 @@ void UGA_HeavyBlow_Special::WaitGameplayEvent(FGameplayEventData Data)
 	}
 }
 
+// 作用: 能力激活——注册攻击事件监听(蓄力期间连打触发特殊攻击/衔接跳跃); 配置了GameplayEffect则给自身施加蓄力Buff; 播放蓄力蒙太奇。
 void UGA_HeavyBlow_Special::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                             const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                             const FGameplayEventData* TriggerEventData)
@@ -94,6 +99,7 @@ void UGA_HeavyBlow_Special::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	PlayMontage(Montage);
 }
 
+// 作用: 能力结束——复位特殊攻击/衔接跳跃标记, 移除蓄力Buff并停止动画蒙太奇。
 void UGA_HeavyBlow_Special::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)

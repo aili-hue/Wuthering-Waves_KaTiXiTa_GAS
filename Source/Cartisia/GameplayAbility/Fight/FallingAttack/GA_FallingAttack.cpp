@@ -5,6 +5,8 @@
 
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UGA_FallingAttack::UGA_FallingAttack()
 {
@@ -31,6 +33,12 @@ void UGA_FallingAttack::PlayLoopAnimMontage()
 	{
 		/*PlayMontageAndWait->OnInterrupted.AddDynamic(this,&ThisClass::EndAttack);*/
 		PlayMontageAndWait->ReadyForActivation();
+		
+		//增加重力让下落速度更快更顺畅
+		if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+		{
+			Character->GetCharacterMovement()->GravityScale= FallingVelocity;
+		}
 	}
 }
 
@@ -66,6 +74,7 @@ void UGA_FallingAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
 	PlayMontage(JumpAnimMontage);
 	
 	if (UAbilitySystemComponent* ASC= GetAbilitySystemComponentFromActorInfo())
@@ -78,6 +87,12 @@ void UGA_FallingAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	bCanEndAbility= true;
+	
+	//回复以前的下落速度
+	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Character->GetCharacterMovement()->GravityScale =1.5f;
+	}
 	
 	if (UAbilitySystemComponent* ASC= GetAbilitySystemComponentFromActorInfo())
 	{

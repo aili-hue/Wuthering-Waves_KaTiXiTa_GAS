@@ -13,6 +13,7 @@ UGA_SpeedSwitching::UGA_SpeedSwitching()
 	
 }
 
+// 作用: 播放冲刺切换蒙太奇——先结束并丢弃上一个蒙太奇任务, 再创建新的播放任务, 完成或打断均结束能力。
 void UGA_SpeedSwitching::PlayMontage(UAnimMontage* MontageToPlay)
 {
 	if (PlayMontageAndWait)
@@ -29,11 +30,14 @@ void UGA_SpeedSwitching::PlayMontage(UAnimMontage* MontageToPlay)
 	}
 }
 
+// 作用: 蒙太奇播放完成——结束冲刺切换能力。
 void UGA_SpeedSwitching::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 能力激活——先提交消耗(CommitAbility), 失败则结束;
+// 成功时按事件幅度(EventMagnitude==1 为正向冲刺, 否则反向)播放前冲/后撤蒙太奇, 正向冲刺同时施加冲刺Buff GameplayEffect。
 void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                          const FGameplayEventData* TriggerEventData)
@@ -76,6 +80,7 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 }
 
+// 作用: 能力结束——结束蒙太奇任务并停止动画蒙太奇。
 void UGA_SpeedSwitching::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

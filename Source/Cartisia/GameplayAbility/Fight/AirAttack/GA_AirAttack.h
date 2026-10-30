@@ -34,6 +34,9 @@ public:
 	
 	FActiveGameplayEffectHandle ActiveGameplayEffectHandle;
 	
+	//触发下落攻击
+	FGameplayTag Ability_Fight_HeavyBlowTag= FGameplayTag::RequestGameplayTag(FName("Ability.Fight.HeavyBlow"));
+	
 	UFUNCTION()
 	void PlayMontage(const FAirAttackFightData& FightStruct);
 	

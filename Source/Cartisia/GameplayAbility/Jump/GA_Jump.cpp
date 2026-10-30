@@ -13,6 +13,7 @@ UGA_Jump::UGA_Jump()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+// 作用: 收到攻击事件(Event.Attack)时——发出 Ability.Fight.AirAttack 空中连招事件, 实现跳跃中接空中攻击。
 void UGA_Jump::WaitGameplayEvent(FGameplayEventData Data)
 {
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
@@ -27,6 +28,7 @@ void UGA_Jump::WaitGameplayEvent(FGameplayEventData Data)
 	}
 }
 
+// 作用: 播放落地蒙太奇, 标记bLand已落地, 完成/被打断回调结束能力。
 void UGA_Jump::LandMontage()
 {
 	
@@ -54,6 +56,7 @@ void UGA_Jump::PlayLandMontage(UAnimMontage* MontageToPlay)
 }
 */
 
+// 作用: 空中循环蒙太奇——起跳蒙太奇淡出后播放滞空循环动画; 未配置循环动画则直接结束能力。
 void UGA_Jump::LoopPlayMontage()
 {
 	if (!LoopAnimMontage)
@@ -68,17 +71,20 @@ void UGA_Jump::LoopPlayMontage()
 	}
 }
 
+// 作用: 落地蒙太奇结束——结束跳跃能力(bLand复位由EndAbility处理)。
 void UGA_Jump::EndLandMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 起跳蒙太奇被打断时——若已落地(bLand)则保持(等待落地蒙太奇收尾), 否则直接结束跳跃能力。
 void UGA_Jump::EndJumpMontage()
 {
 	if (bLand)return;
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 播放起跳蒙太奇, 淡出后接循环滞空动画(LoopPlayMontage), 被打断走EndJumpMontage。
 void UGA_Jump::PlayMontage(UAnimMontage* MontageToPlay)
 {
 	if (MontageToPlay)
@@ -92,6 +98,7 @@ void UGA_Jump::PlayMontage(UAnimMontage* MontageToPlay)
 	}
 }
 
+// 作用: 收到"跳跃结束"(Event.EndAbilityJump)事件时——物理跳跃(bPhysicaljumps)直接结束能力, 否则播放落地蒙太奇收尾。
 void UGA_Jump::EndMontage(FGameplayEventData Data)
 {
 	
@@ -104,6 +111,8 @@ void UGA_Jump::EndMontage(FGameplayEventData Data)
 }
 
 
+// 作用: 能力激活——注册攻击事件(空中连招)与跳跃结束事件监听; 给自身施加连招GameplayEffect;
+// 播放起跳蒙太奇, 并(按是否物理跳跃选择调用Character->Jump)施加跳跃GameplayEffect; 无角色则结束能力。
 void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -165,6 +174,7 @@ void UGA_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 	}
 }
 
+// 作用: 能力结束——复位落地标记, 移除跳跃/连招GameplayEffect并注销坠落标签监听, 停止动画蒙太奇。
 void UGA_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

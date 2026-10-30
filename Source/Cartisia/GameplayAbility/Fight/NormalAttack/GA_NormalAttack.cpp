@@ -13,6 +13,7 @@ UGA_NormalAttack::UGA_NormalAttack()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+// 作用: 播放一段普攻连招蒙太奇(第CurrentMove段), 并监听其完成/被打断回调以决定结束能力或进入下一段。
 void UGA_NormalAttack::PlayMontage(const FAirAttackFight& FightStruct)
 {
 	if (FightStruct.Montage)
@@ -26,11 +27,13 @@ void UGA_NormalAttack::PlayMontage(const FAirAttackFight& FightStruct)
 	}
 }
 
+// 作用: 蒙太奇播放完成——结束整个普攻能力(连招末尾收尾)。
 void UGA_NormalAttack::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 蒙太奇被打断时——若处于连招状态(bIsCombo)则仅复位连招标记(等待连打事件), 否则视为整段攻击结束并结束能力。
 void UGA_NormalAttack::Interrupted()
 {
 	if (bIsCombo)
@@ -41,6 +44,8 @@ void UGA_NormalAttack::Interrupted()
 	EndMontage();
 }
 
+// 作用: 连招推进核心——收到 Event.Attack 事件时, 连招索引在FightStructs中循环前移(取模), 标记连招状态,
+// 按不同段位(第2/3段)触发对应的攻击GameplayCue(特效/音效), 并播放下一段连招蒙太奇。
 void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 {
 	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
@@ -78,6 +83,7 @@ void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 	}
 }
 
+// 作用: 能力激活——注册 Event.Attack 连招事件监听; 连招数据为空则直接结束; 从第0段开始播放普攻蒙太奇, 并给自身施加连招状态GameplayEffect(Data.Attack)。
 void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                        const FGameplayEventData* TriggerEventData)
@@ -117,6 +123,7 @@ void UGA_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 }
 
+// 作用: 能力结束——复位连招状态(索引/连打标记), 移除连招GameplayEffect, 并按取消与否选择混合时间停止动画蒙太奇。
 void UGA_NormalAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

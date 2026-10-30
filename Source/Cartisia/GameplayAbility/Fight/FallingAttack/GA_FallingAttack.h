@@ -25,6 +25,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "AnimMontage")
 	TObjectPtr<UAnimMontage>EndAnimMontage;
 	
+	//下落速度
+	UPROPERTY(EditDefaultsOnly, Category = "Gravity")
+	float FallingVelocity= 4.f;
+	
 	void PlayMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION()

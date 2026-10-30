@@ -10,6 +10,7 @@ public class CartisiaEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V7;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
-		ExtraModuleNames.Add("Cartisia");
+
+		ExtraModuleNames.AddRange(new string[] { "Cartisia", "WuWaCharacterLab", "WuWaCharacterLabEditor" });
 	}
 }

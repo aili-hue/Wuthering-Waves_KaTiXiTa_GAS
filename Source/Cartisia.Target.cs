@@ -10,6 +10,7 @@ public class CartisiaTarget : TargetRules
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V7;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
-		ExtraModuleNames.Add("Cartisia");
+
+		ExtraModuleNames.AddRange(new string[] { "Cartisia", "WuWaCharacterLab" });
 	}
 }

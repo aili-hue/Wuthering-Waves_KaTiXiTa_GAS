@@ -12,6 +12,7 @@ UGA_Skill::UGA_Skill()
 	InstancingPolicy=EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+// 作用: 播放技能蒙太奇, 完成/被打断回调均结束能力。
 void UGA_Skill::PlayAnimMontage(UAnimMontage* Montage)
 {
 	if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait= UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None,Montage,1.f,NAME_None))
@@ -22,11 +23,13 @@ void UGA_Skill::PlayAnimMontage(UAnimMontage* Montage)
 	}
 }
 
+// 作用: 蒙太奇播放完成——结束技能能力。
 void UGA_Skill::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 能力激活——先提交消耗(CommitAbility, 扣蓝/冷却等), 失败则结束; 成功后执行技能GameplayCue(特效音效)并播放技能蒙太奇。
 void UGA_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                 const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -45,6 +48,7 @@ void UGA_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	if (AnimMontage){PlayAnimMontage(AnimMontage);}
 }
 
+// 作用: 能力结束——停止动画蒙太奇(按取消与否选择混合时间; 注: 当前重复执行了两遍相同的停止逻辑)。
 void UGA_Skill::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

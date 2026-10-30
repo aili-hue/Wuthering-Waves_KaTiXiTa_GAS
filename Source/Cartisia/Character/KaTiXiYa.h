@@ -41,6 +41,10 @@ public:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SpringArm")
 	TObjectPtr<USpringArmComponent>SpringArmComponent;
+
+	//SpringArm
+	UFUNCTION(BlueprintCallable,Category="Camera")
+	void SetCameraArmLength(float NewArmLength);
 	
 protected:
 	
@@ -67,6 +71,7 @@ protected:
 	UPROPERTY(EditAnywhere,Category="MeshName")
 	FName SwordName;
 	
+	//生成并挂载武器Actor(角色附带武器/剑的生成入口)
 	void SpawnAttachmentActor(TSubclassOf<AActor> WeaponMeshs,FName SocketName);
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Mesh")
@@ -245,6 +250,7 @@ protected:
 	
 	//FActiveGameplayEffectHandle
 	
+	//授予落地Buff(Data.Landed对应GE, 落地后生效的状态效果)
 	void Data_LandedEvent();
 	
 	UPROPERTY()
@@ -295,7 +301,6 @@ protected:
 	void OnUltimateFormChanged(FGameplayTag EventTag,int32 NewValue);
 	
 	FDelegateHandle UltimateFormHandle;
-	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

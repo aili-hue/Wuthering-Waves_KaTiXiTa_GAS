@@ -11,6 +11,7 @@ UGA_DoubleJump::UGA_DoubleJump()
 }
 
 
+// 作用: 播放二段跳蒙太奇, 播放完成/被打断均结束能力。
 void UGA_DoubleJump::PlayMontageJump(UAnimMontage* MontageToPlay)
 {
 	if (MontageToPlay)
@@ -24,11 +25,13 @@ void UGA_DoubleJump::PlayMontageJump(UAnimMontage* MontageToPlay)
 	}
 }
 
+// 作用: 蒙太奇播放完成——结束二段跳能力。
 void UGA_DoubleJump::EndMontage()
 {
 	EndAbility(CurrentSpecHandle,CurrentActorInfo,CurrentActivationInfo,true,true);
 }
 
+// 作用: 能力激活——根据事件幅度(EventMagnitude==1 为前跳, 否则后退)选择播放前跳或后跳二段跳蒙太奇。
 void UGA_DoubleJump::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                      const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                      const FGameplayEventData* TriggerEventData)
@@ -46,6 +49,7 @@ void UGA_DoubleJump::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	
 }
 
+// 作用: 能力结束——按取消与否选择混合时间停止动画蒙太奇。
 void UGA_DoubleJump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
