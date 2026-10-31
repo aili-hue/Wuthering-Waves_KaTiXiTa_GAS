@@ -38,15 +38,17 @@ void UGA_DoubleJump::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (TriggerEventData->EventMagnitude == 1.f)
+	if (TriggerEventData)
 	{
-		PlayMontageJump(Jump_Second_F);
+		if (TriggerEventData->EventMagnitude == 1.f)
+		{
+			PlayMontageJump(Jump_Second_F);
+		}
+		else
+		{
+			PlayMontageJump(Jump_Second_B);
+		}
 	}
-	else
-	{
-		PlayMontageJump(Jump_Second_B);
-	}
-	
 }
 
 // 作用: 能力结束——按取消与否选择混合时间停止动画蒙太奇。

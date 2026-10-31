@@ -5,13 +5,16 @@
 
 AGC_Skill::AGC_Skill()
 {
-	USceneComponent* DummyRoot = CreateDefaultSubobject<USceneComponent>("DefaultSceneRoot");
-	SetRootComponent(DummyRoot);
+	if (USceneComponent* DummyRoot = CreateDefaultSubobject<USceneComponent>("DefaultSceneRoot"))
+	{
+		SetRootComponent(DummyRoot);
 	
-	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMeshComponent");
-	SkeletalMesh->SetupAttachment(DummyRoot);
-	
-	SkeletalMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		if (SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMeshComponent"))
+		{
+			SkeletalMesh->SetupAttachment(DummyRoot);
+			SkeletalMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		}
+	}
 }
 
 void AGC_Skill::OnMatrixAnimEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -24,7 +27,7 @@ bool AGC_Skill::OnExecute_Implementation(AActor* MyTarget, const FGameplayCuePar
 	bool bSuperResult= Super::OnExecute_Implementation(MyTarget, Parameters);
 	
 	SetActorHiddenInGame(false);
-	SkeletalMesh->SetVisibility(true, true);
+	if (SkeletalMesh)SkeletalMesh->SetVisibility(true, true);
 	
 	if (ImpactCameraShake)
 	{

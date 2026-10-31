@@ -55,30 +55,32 @@ void UGA_NormalAttack::WaitGameplayEvent(FGameplayEventData EventData)
 		CurrentMove = TargetMoveIndex;
 		bIsCombo = true;
 		
-		FGameplayCueParameters Params;
-		Params.EffectCauser = GetAvatarActorFromActorInfo();
-		Params.Instigator = GetAvatarActorFromActorInfo();
-		Params.Location = GetAvatarActorFromActorInfo()->GetActorLocation();
-		Params.RawMagnitude = FightStructs[TargetMoveIndex].Magnification;
- 
-		switch (TargetMoveIndex)
+		if (AActor* Actor = Cast<AActor>(GetAvatarActorFromActorInfo()))
 		{
-		case 2:
-			if (GC_Attack_2.IsValid())
+			FGameplayCueParameters Params;
+			Params.EffectCauser = Actor;
+			Params.Instigator = Actor;
+			Params.Location = Actor->GetActorLocation();
+			Params.RawMagnitude = FightStructs[TargetMoveIndex].Magnification;
+			
+			switch (TargetMoveIndex)
 			{
-				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_2, Params);
+			case 2:
+				if (GC_Attack_2.IsValid())
+				{
+					AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_2, Params);
+				}
+				break;
+			case 3:
+				if (GC_Attack_3.IsValid())
+				{
+					AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_3, Params);
+				}
+				break;
+			default:
+				break;
 			}
-			break;
-		case 3:
-			if (GC_Attack_3.IsValid())
-			{
-				AbilitySystemComponent->ExecuteGameplayCue(GC_Attack_3, Params);
-			}
-			break;
-		default:
-			break;
 		}
-		
 		PlayMontage(FightStructs[CurrentMove]);
 	}
 }

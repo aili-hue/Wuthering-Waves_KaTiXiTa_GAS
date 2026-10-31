@@ -52,29 +52,32 @@ void UGA_SpeedSwitching::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	
 	if (UAbilitySystemComponent*ASC= GetAbilitySystemComponentFromActorInfo())
 	{
-		if (TriggerEventData->EventMagnitude == 1.f)
+		if (TriggerEventData)
 		{
-		
-			if (FrontMontage)
+			if (TriggerEventData->EventMagnitude == 1.f)
 			{
-				PlayMontage(FrontMontage);
-			}
 		
-			if (Effect)
-			{
-				FGameplayEffectContextHandle ContextHandle=ASC->MakeEffectContext();
-				FGameplayEffectSpecHandle SpecHandle=ASC->MakeOutgoingSpec(Effect,1.f,ContextHandle);
-				if (SpecHandle.IsValid())
+				if (FrontMontage)
 				{
-					ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+					PlayMontage(FrontMontage);
+				}
+		
+				if (Effect)
+				{
+					FGameplayEffectContextHandle ContextHandle=ASC->MakeEffectContext();
+					FGameplayEffectSpecHandle SpecHandle=ASC->MakeOutgoingSpec(Effect,1.f,ContextHandle);
+					if (SpecHandle.IsValid())
+					{
+						ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+					}
 				}
 			}
-		}
-		else
-		{
-			if (BackMontage)
+			else
 			{
-				PlayMontage(BackMontage);
+				if (BackMontage)
+				{
+					PlayMontage(BackMontage);
+				}
 			}
 		}
 	}

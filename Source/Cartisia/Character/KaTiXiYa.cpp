@@ -29,11 +29,18 @@ AKaTiXiYa::AKaTiXiYa()
 	PlayerAttributes=CreateDefaultSubobject<UPlayerAttributes>(TEXT("PlayerAttributes"));
 	
 	DollMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DollMesh"));
-	DollMesh->SetupAttachment(GetMesh(),TEXT("Bip001RHandDoll"));
+	if (DollMesh)
+	{
+		DollMesh->SetupAttachment(GetMesh(),TEXT("Bip001RHandDoll"));
+	}
 	
 	SkeletalMesh= CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
-	SkeletalMesh->SetupAttachment(GetMesh(),TEXT("Jian"));
-	SkeletalMesh->SetVisibility(false);
+	
+	if (SkeletalMesh)
+	{
+		SkeletalMesh->SetupAttachment(GetMesh(),TEXT("Jian"));
+		SkeletalMesh->SetVisibility(false);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -67,7 +74,7 @@ void AKaTiXiYa::DollEvent(FGameplayTag EventTag, int32 Number)
 	{
 		Arms->SkeletalMeshComponent->SetVisibility(Number>0 ? false : true);
 	}
-	DollMesh->SetVisibility(Number>0);
+	if (DollMesh)DollMesh->SetVisibility(Number>0);
 }
 
 
@@ -123,23 +130,30 @@ void AKaTiXiYa::MoveInputEvent(const FInputActionValue& InputEvent)
 		InterruptAnimation(Tag);
 	}
 	
-	if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag) && BuffEffect.Find(Data_MovingTag))
+	if (AbilitySystemComponent)
 	{
-		FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
-		FGameplayEffectSpecHandle SpecHandle= AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_MovingTag],1.f,ContextHandle);
-		if (SpecHandle.IsValid())
+		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag) && BuffEffect.Find(Data_MovingTag))
 		{
-			MovingHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			FGameplayEffectContextHandle ContextHandle= AbilitySystemComponent->MakeEffectContext();
+			FGameplayEffectSpecHandle SpecHandle= AbilitySystemComponent->MakeOutgoingSpec(BuffEffect[Data_MovingTag],1.f,ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				MovingHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
 		}
 	}
 	
 	FVector2D MousePosition2D=InputEvent.Get<FVector2D>();
-	FRotator Rotation= GetController()->GetControlRotation();
-	FRotator YawRotation(0.f,Rotation.Yaw,0.f);
-	FVector ForwardVector=FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	FVector RightVector=FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	AddMovementInput(ForwardVector,MousePosition2D.X);
-	AddMovementInput(RightVector,MousePosition2D.Y);
+	
+	if (AController* Controller = Cast<AController>(GetController()))
+	{
+		FRotator Rotation= Controller->GetControlRotation();
+		FRotator YawRotation(0.f,Rotation.Yaw,0.f);
+		FVector ForwardVector=FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		FVector RightVector=FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(ForwardVector,MousePosition2D.X);
+		AddMovementInput(RightVector,MousePosition2D.Y);
+	}
 }
 
 // 作用: 视角输入(IA_Perspective)触发时——将二维鼠标偏移分别转换为相机俯仰(Pitch)与偏航(Yaw)输入。
@@ -169,18 +183,19 @@ void AKaTiXiYa::SprintEvent(const FInputActionValue& InputEvent)
 // 再调用SpeedSwitching施加停止类Buff。注释说明: 因跳跃会阻止急停动画GA, 故把"数值修改"与"调整"拆成两个GA处理。
 void AKaTiXiYa::EndMoveInputEvent(const FInputActionValue& InputEvent)
 {
-	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag))
-	{
-		if (MovingHandle.IsValid())
-		{
-			AbilitySystemComponent->RemoveActiveGameplayEffect(MovingHandle);
-			MovingHandle.Invalidate();
-		}
-	}
-	//因为跳跃会阻止急停动画Ability，所以我将他的修改数值和数值调整分为了两个GA
 	
 	if (AbilitySystemComponent)
 	{
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_MovingTag))
+		{
+			if (MovingHandle.IsValid())
+			{
+				AbilitySystemComponent->RemoveActiveGameplayEffect(MovingHandle);
+				MovingHandle.Invalidate();
+			}
+		}
+		//因为跳跃会阻止急停动画Ability，所以我将他的修改数值和数值调整分为了两个GA
+		
 		if (!AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
 		{
 			FGameplayEventData  AbilityData;
@@ -352,18 +367,16 @@ void AKaTiXiYa::Q_Event(const FInputActionValue& InputEvent)
 void AKaTiXiYa::LandedEvent()
 {
 	
-	if (AbilitySystemComponent)
-	{
-		FGameplayEventData Data;
-		Data.Instigator=this;
-		Data.EventTag=Event_AbilityJumpTag;
-		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
-	}
-	
 	float Time=GetWorld()->TimeSeconds-LandedTime;
 	
 	if (AbilitySystemComponent)
 	{
+		
+		FGameplayEventData Data;
+		Data.Instigator=this;
+		Data.EventTag=Event_AbilityJumpTag;
+		AbilitySystemComponent->HandleGameplayEvent(Event_AbilityJumpTag,&Data);
+		
 		if (Time >= Land_RollTime)
 		{
 			FGameplayEventData Data;
@@ -383,23 +396,25 @@ void AKaTiXiYa::LandedEvent()
 		}
 		
 		LandedTime= 0.f;
-	}
-	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
-	{
-		if (FallingHandle.IsValid())
+		
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FallingTag))
 		{
-			AbilitySystemComponent->RemoveActiveGameplayEffect(FallingHandle);
-			FallingHandle.Invalidate();
+			if (FallingHandle.IsValid())
+			{
+				AbilitySystemComponent->RemoveActiveGameplayEffect(FallingHandle);
+				FallingHandle.Invalidate();
+			}
+		}
+		if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
+		{
+			if (FlingHandle.IsValid())
+			{
+				AbilitySystemComponent->RemoveActiveGameplayEffect(FlingHandle);
+				FlingHandle.Invalidate();
+			}
 		}
 	}
-	if (AbilitySystemComponent->HasMatchingGameplayTag(Data_FlyingTag))
-	{
-		if (FlingHandle.IsValid())
-		{
-			AbilitySystemComponent->RemoveActiveGameplayEffect(FlingHandle);
-			FlingHandle.Invalidate();
-		}
-	}
+	
 }
 
 // 作用: 急停Buff切换(移动停止时调用)——当角色不在移动状态时, 向自身施加"停止(Data.Stop)"Buff用于调整移动相关数值(如速度曲线), 供StopWalking GA拆分工序使用。
@@ -434,7 +449,7 @@ void AKaTiXiYa::InterruptAnimation(FGameplayTag AbilityAnimationTag)
 // 作用: 落地Buff授予——若BuffEffect表配置了Data.Landed对应buff, 则向自身施加"着陆(Data.Landed)"Buff(落地后短时间内生效的状态效果, 如落地硬直/滚动)。
 void AKaTiXiYa::Data_LandedEvent()
 {
-	if (BuffEffect.Find(Data_LandedTag))
+	if (BuffEffect.Find(Data_LandedTag) && AbilitySystemComponent)
 	{
 		if (Data_LandedTag.IsValid())
 		{
@@ -491,14 +506,16 @@ void AKaTiXiYa::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!FMath::IsNearlyEqual(SpringArmComponent->TargetArmLength, TargetLength, 0.1f))
+	if (SpringArmComponent)
 	{
-		SpringArmComponent->TargetArmLength = FMath::FInterpTo(
+		if (!FMath::IsNearlyEqual(SpringArmComponent->TargetArmLength, TargetLength, 0.1f))
+		{
+			SpringArmComponent->TargetArmLength = FMath::FInterpTo(
 			SpringArmComponent->TargetArmLength, 
 			TargetLength, 
 			DeltaTime, 
-			5.f 
-		);
+			5.f );
+		}
 	}
 	
 }

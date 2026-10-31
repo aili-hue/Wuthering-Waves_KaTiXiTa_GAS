@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Gravity")
 	float FallingVelocity= 4.f;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Gravity")
+	float NormalGravity= 1.5f;
+	
 	void PlayMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION()

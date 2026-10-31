@@ -29,6 +29,8 @@ void UGA_FallingAttack::PlayMontage(UAnimMontage* MontageToPlay)
 
 void UGA_FallingAttack::PlayLoopAnimMontage()
 {
+	if (!LoopAnimMontage)return;
+	
 	if (UAbilityTask_PlayMontageAndWait* PlayMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this,NAME_None, LoopAnimMontage,1.f,NAME_None))
 	{
 		/*PlayMontageAndWait->OnInterrupted.AddDynamic(this,&ThisClass::EndAttack);*/
@@ -91,7 +93,7 @@ void UGA_FallingAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	//回复以前的下落速度
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
-		Character->GetCharacterMovement()->GravityScale =1.5f;
+		Character->GetCharacterMovement()->GravityScale= NormalGravity;
 	}
 	
 	if (UAbilitySystemComponent* ASC= GetAbilitySystemComponentFromActorInfo())

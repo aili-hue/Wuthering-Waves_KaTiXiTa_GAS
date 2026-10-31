@@ -6,12 +6,16 @@
 AGC_Gravity::AGC_Gravity()
 {
 	USceneComponent* DummyRoot = CreateDefaultSubobject<USceneComponent>("DefaultSceneRoot");
-	SetRootComponent(DummyRoot);
+	if (DummyRoot)SetRootComponent(DummyRoot);
 	
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMeshComponent");
-	SkeletalMesh->SetupAttachment(DummyRoot);
 	
-	SkeletalMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	if (SkeletalMesh)
+	{
+		SkeletalMesh->SetupAttachment(DummyRoot);
+	
+		SkeletalMesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	}
 }
 
 
@@ -29,10 +33,9 @@ bool AGC_Gravity::OnExecute_Implementation(AActor* MyTarget, const FGameplayCueP
 			AnimInst->OnMontageEnded.RemoveAll(this);
 			AnimInst->StopAllMontages(0.f);
 		}
+		SetActorHiddenInGame(false);
+		SkeletalMesh->SetVisibility(true, true);
 	}
-	
-	SetActorHiddenInGame(false);
-	SkeletalMesh->SetVisibility(true, true);
 	
 	if (ImpactCameraShake)
 	{

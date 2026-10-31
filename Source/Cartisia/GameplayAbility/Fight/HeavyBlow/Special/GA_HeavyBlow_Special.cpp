@@ -85,15 +85,16 @@ void UGA_HeavyBlow_Special::ActivateAbility(const FGameplayAbilitySpecHandle Han
 			
 		WaitGameplayEvent->ReadyForActivation();
 	}
-	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
-	
-	if (GameplayEffect)
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo())
 	{
-		FGameplayEffectContextHandle ContextHandle=AbilitySystemComponent->MakeEffectContext();
-		FGameplayEffectSpecHandle SpecHandle=AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect,1.f,ContextHandle);
-		if (SpecHandle.IsValid())
+		if (GameplayEffect)
 		{
-			ActiveGameplayEffectHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			FGameplayEffectContextHandle ContextHandle=AbilitySystemComponent->MakeEffectContext();
+			FGameplayEffectSpecHandle SpecHandle=AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect,1.f,ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				ActiveGameplayEffectHandle= AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
 		}
 	}
 	PlayMontage(Montage);

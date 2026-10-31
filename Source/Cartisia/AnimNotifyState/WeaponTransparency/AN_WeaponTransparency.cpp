@@ -9,10 +9,7 @@ void UAN_WeaponTransparency::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnim
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 	
-	UMaterialParameterCollectionInstance* MPCInstance = 
-		MeshComp->GetWorld()->GetParameterCollectionInstance(MaterialParameterCollection);
-
-	if (MPCInstance)
+	if (UMaterialParameterCollectionInstance* MPCInstance = MeshComp->GetWorld()->GetParameterCollectionInstance(MaterialParameterCollection))
 	{
 		MPCInstance->SetScalarParameterValue(FName("ce"), 1.f);
 	}
@@ -23,10 +20,7 @@ void UAN_WeaponTransparency::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSe
 	const FAnimNotifyEventReference& EventReference)
 {
 	
-	UMaterialParameterCollectionInstance* MPCInstance = 
-		MeshComp->GetWorld()->GetParameterCollectionInstance(MaterialParameterCollection);
-
-	if (MPCInstance)
+	if (UMaterialParameterCollectionInstance* MPCInstance= MeshComp->GetWorld()->GetParameterCollectionInstance(MaterialParameterCollection))
 	{
 		MPCInstance->SetScalarParameterValue(FName("ce"), 0.f);
 	}

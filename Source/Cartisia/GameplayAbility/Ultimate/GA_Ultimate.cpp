@@ -105,7 +105,7 @@ void UGA_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 		SequenceActor->Destroy();
 		SequenceActor = nullptr;
 	}
-
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
